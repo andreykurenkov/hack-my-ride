@@ -1,5 +1,5 @@
 import datetime
-from django.contrib.gis.db import geommodels
+from django.contrib.gis.db import models
 from django.db import models
 from django.utils import timezone
 
@@ -39,10 +39,10 @@ class Address(models.Model):
     zipcode = models.ForeignKey(Zipcode)
     objects = models.GeoManager()
 
-class Stop(models.Model(models.Model):
+class Stop(models.Model):
     route = models.ForeignField(Route)
     predicted_arrival_time = models.DateTimeField('Arrival Time')
-    location = geommodels.GeometryField()
+    location = models.GeometryField()
     objects = models.GeoManager()
     address = models.OneToOneField(Address)
     arrival_variance = models.DurationField(default=0)
