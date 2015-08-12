@@ -88,8 +88,8 @@ WSGI_APPLICATION = 'transittimes.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-         'NAME': 'geodjango',
-         'USER': 'geo',
+         'NAME': 'transittimesdb',
+         'USER': 'andrey',
     }
 }
 

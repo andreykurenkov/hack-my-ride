@@ -1,6 +1,5 @@
 import datetime
 from django.contrib.gis.db import models
-from django.db import models
 from django.utils import timezone
 
 class TransitSystem(models.Model):
@@ -12,6 +11,7 @@ METRO = 'METRO'
 LIGHT_TRAIN = 'LIGHT_TRAIN'
 BOAT = 'BOAT'
 OTHER = 'OTHER'
+
 class Vehicle(models.Model):
     TYPES = (
         (BUS, 'Bus'),
@@ -31,6 +31,11 @@ class Route(models.Model):
     transitsystem = models.ForeignKey(TransitSystem)
     vehicle = models.ForeignKey(Vehicle)
 
+class Zipcode(models.Model):
+    code = models.CharField(max_length=5)
+    poly = models.PolygonField()
+    objects = models.GeoManager()
+
 class Address(models.Model):
     num = models.IntegerField()
     street = models.CharField(max_length=100)
@@ -40,7 +45,7 @@ class Address(models.Model):
     objects = models.GeoManager()
 
 class Stop(models.Model):
-    route = models.ForeignField(Route)
+    route = models.ForeignKey(Route)
     predicted_arrival_time = models.DateTimeField('Arrival Time')
     location = models.GeometryField()
     objects = models.GeoManager()
@@ -58,13 +63,11 @@ DAYS_OF_WEEK = (
 )
 
 class StopTime(models.Model):
-    stop = models.ForeignField(Stop)
+    stop = models.ForeignKey(Stop)
     day = models.CharField(max_length=1, choices=DAYS_OF_WEEK)
     time = models.TimeField('Stop Time')
 
 class IntervalStopTime(StopTime):
-    day = models.CharField(max_length=1, choices=DAYS_OF_WEEK)
-    time = models.TimeField('Stop Time')
     interval = models.DurationField(default=0)
 
 class DatestopTime(StopTime):

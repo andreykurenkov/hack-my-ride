@@ -1,6 +1,4 @@
 from django.contrib import admin
-from myproject.myapp.models import Author
+from transittimesapp.models import *
 
-class AuthorAdmin(admin.ModelAdmin):
-    pass
-admin.site.register(Author, AuthorAdmin)
+
