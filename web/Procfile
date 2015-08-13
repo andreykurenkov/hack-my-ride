@@ -1,0 +1,2 @@
+web: gunicorn transittimes.wsgi --log-file -
+
