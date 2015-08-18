@@ -71,6 +71,6 @@ class IntervalStopTime(StopTime):
     interval = models.DurationField(default=0)
 
 class DatestopTime(StopTime):
-    date = models.DateField('Sop Date')
+    date = models.DateField('Stop Date')
 
 

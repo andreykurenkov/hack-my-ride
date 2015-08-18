@@ -38,6 +38,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework_gis',
     'django.contrib.gis',
     'transittimesapp'
 )
@@ -58,7 +59,10 @@ REST_FRAMEWORK = {
     # or allow read-only access for unauthenticated users.
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
-    ]
+    ],
+    'DEFAULT_PARSER_CLASSES': (
+        'rest_framework.parsers.FileUploadParser'
+    )
 }
 
 ROOT_URLCONF = 'transittimes.urls'
@@ -88,8 +92,11 @@ WSGI_APPLICATION = 'transittimes.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-         'NAME': 'transittimesdb',
-         'USER': 'andrey',
+         'NAME': 'transitdb',
+         'USER': 'andreyk',
+         'PASSWORD': '16253461',# Database password 
+         'HOST': '127.0.0.1',
+         'PORT': '5432',        
     }
 }
 
