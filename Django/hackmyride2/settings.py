@@ -13,7 +13,6 @@ import os
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
 
@@ -41,31 +40,33 @@ INSTALLED_APPS = (
     'rest_framework_swagger',
     'provider',
     'provider.oauth2',
-    'multigfs',
-    'transitrestapi'
+    'multigtfs',
+    'exploreapp',
+    'transitrestapi',
 )
+
+POSTGIS_VERSION = (2, 1, 0)
 
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
+    #'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'django.middleware.security.SecurityMiddleware',
+    #'django.middleware.security.SecurityMiddleware',
 )
 
 REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,
     # or allow read-only access for unauthenticated users.
   'DEFAULT_AUTHENTICATION_CLASSES': (
-      'rest_framework.authentication.OAuth2Authentication',
-  ),
+	'rest_framework.authentication.BasicAuthentication'  
+   ),
 }
 
-
-ROOT_URLCONF = 'transittimes.urls'
+ROOT_URLCONF = 'hackmyride2.urls'
 
 TEMPLATES = [
     {
@@ -83,16 +84,14 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'transittimes.wsgi.application'
-
-
+WSGI_APPLICATION = 'hackmyride2.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
 
 DATABASES = {
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-         'NAME': 'transitdb',
+         'NAME': 'hackmyridedb',
          'USER': 'andreyk',
          'PASSWORD': '16253461',# Database password 
          'HOST': '127.0.0.1',
