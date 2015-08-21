@@ -3,7 +3,6 @@ from multigtfs.models import (
     Block, Fare, FareRule, Feed, Frequency, Route, Service, ServiceDate, Shape,
     ShapePoint, Stop, StopTime, Trip)
 
-
 class ByFeedListView(ListView):
     by_col = 'feed_id'
     by_kwarg = 'feed_id'

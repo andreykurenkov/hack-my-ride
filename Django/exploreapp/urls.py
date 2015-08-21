@@ -11,7 +11,6 @@ from exploreapp.views import (
     TripByBlockListView, TripByRouteListView, TripByServiceListView,
     TripByShapeListView)
 
-
 urlpatterns = patterns(
     '',
     url(r'feed/$', ListView.as_view(model=Feed), name='feed_list'),
