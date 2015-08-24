@@ -1,15 +1,19 @@
-package thingswithworth.org.transittimes;
+package thingswithworth.org.transittimes.ui.activity;
 
 import android.os.RemoteException;
-import android.support.v7.app.ActionBarActivity;
-import android.support.v4.app.Fragment;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
+import android.widget.AdapterView;
+
+import com.mikepenz.materialdrawer.Drawer;
+import com.mikepenz.materialdrawer.model.DividerDrawerItem;
+import com.mikepenz.materialdrawer.model.PrimaryDrawerItem;
+import com.mikepenz.materialdrawer.model.interfaces.IDrawerItem;
 
 import org.altbeacon.beacon.Beacon;
 import org.altbeacon.beacon.BeaconConsumer;
@@ -21,17 +25,57 @@ import org.altbeacon.beacon.utils.UrlBeaconUrlCompressor;
 
 import java.util.Collection;
 
+import butterknife.Bind;
+import butterknife.ButterKnife;
+import thingswithworth.org.transittimes.R;
+import thingswithworth.org.transittimes.ui.fragment.TransitSystemFragment;
 
-public class MainActivity extends ActionBarActivity implements BeaconConsumer, RangeNotifier {
+
+public class MainActivity extends AppCompatActivity implements BeaconConsumer, RangeNotifier {
     private static String TAG = "MainActivity";
     private BeaconManager mBeaconManager;
+    private TransitSystemFragment systemFragment;
+
+    @Bind(R.id.toolbar)
+    Toolbar mToolbar;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        ButterKnife.bind(this);
+
+        mToolbar.setTitle("TransitTimes");
+        setSupportActionBar(mToolbar);
+
+        final Drawer.Result drawer = new Drawer().withActivity(this)
+                .withToolbar(mToolbar)
+                .addDrawerItems(
+                        new PrimaryDrawerItem().withName("Text"),
+                        new DividerDrawerItem()
+                ).withOnDrawerListener(new Drawer.OnDrawerListener() {
+                    @Override
+                    public void onDrawerOpened(View view) {
+
+                    }
+
+                    @Override
+                    public void onDrawerClosed(View view) {
+
+                    }
+                })
+                .withOnDrawerItemClickListener(
+                        (adapterView, view, i, l, iDrawerItem) ->
+                        {
+
+                        }
+                )
+                .build();
+
         if (savedInstanceState == null) {
+            systemFragment = new TransitSystemFragment();
             getSupportFragmentManager().beginTransaction()
-                    .add(R.id.container, new PlaceholderFragment())
+                    .add(R.id.container, systemFragment)
                     .commit();
         }
     }
@@ -57,22 +101,6 @@ public class MainActivity extends ActionBarActivity implements BeaconConsumer, R
         }
 
         return super.onOptionsItemSelected(item);
-    }
-
-    /**
-     * A placeholder fragment containing a simple view.
-     */
-    public static class PlaceholderFragment extends Fragment {
-
-        public PlaceholderFragment() {
-        }
-
-        @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                                 Bundle savedInstanceState) {
-            View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-            return rootView;
-        }
     }
 
     @Override

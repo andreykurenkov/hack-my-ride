@@ -16,6 +16,8 @@ import org.altbeacon.beacon.powersave.BackgroundPowerSaver;
 import org.altbeacon.beacon.startup.BootstrapNotifier;
 import org.altbeacon.beacon.startup.RegionBootstrap;
 
+import thingswithworth.org.transittimes.ui.activity.MainActivity;
+
 /**
  * Created by andrey on 8/22/15.
  */
