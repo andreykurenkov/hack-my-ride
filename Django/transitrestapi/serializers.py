@@ -1,7 +1,11 @@
 from rest_framework import serializers
 from multigtfs.models import (
-    Block, Fare, FareRule, Feed, Frequency, Route, Service, ServiceDate, Shape,
+    Agency, Block, Fare, FareRule, Feed, Frequency, Route, Service, ServiceDate, Shape,
     ShapePoint, Stop, StopTime, Trip)
+
+class AgencySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Agency
 
 class BlockSerializer(serializers.ModelSerializer):
     class Meta:
@@ -42,6 +46,14 @@ class StopTimeSerializer(serializers.ModelSerializer):
 class RouteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Route
+
+class RouteLightSerializer(serializers.Serializer):
+    route_id = serializers.CharField(max_length=255)
+    agency = AgencySerializer()
+    short_name = serializers.CharField(max_length=63)
+    long_name = serializers.CharField()
+    rtype = serializers.IntegerField()
+    url = serializers.URLField()
 
 class TripSerializer(serializers.ModelSerializer):
     class Meta:

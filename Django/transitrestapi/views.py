@@ -1,154 +1,174 @@
 from django.shortcuts import render
+from rest_framework import generics
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from multigtfs.models import (
-    Block, Fare, FareRule, Feed, Frequency, Route, Service, ServiceDate, Shape,
+    Agency, Block, Fare, FareRule, Feed, Frequency, Route, Service, ServiceDate, Shape,
     ShapePoint, Stop, StopTime, Trip)
 from transitrestapi.serializers import *
+from django.http import Http404
+import abc 
 
-# Create your views here.
-class ServiceListAPIView(APIView):
+class AgencyListAPIView(generics.ListCreateAPIView):
+    """
+    List all agencies, or create a new agency.
+    """
+    queryset = Agency.objects.all()
+    serializer_class = AgencySerializer
+    #TODO permissions
+
+class AgencyDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Retrieve, update or delete a agency instance.
+    """
+    queryset = Agency.objects.all()
+    serializer_class = AgencySerializer
+    lookup_field = 'agency_id'
+
+class BasicListAPIView():
+    """
+    Base class for basic REST list views (list or add new)
+    Note that subclass extends this and APIView, so that it
+    is automatically in api-doc.
+    """
+    def __init__(self,model_class,serializer_class):
+        self.model = model_class
+        self.serializer = serializer_class
+    
+    def get(self, request, agency_id, format=None):
+        objects = self.model.objects.get(agency__agency_id=agency_id)
+        serialized = self.serializer(objects, many=True)
+        return Response(serialized.data)
+
+    def post(self, request, agency_id, format=None):
+        #TODO verify agency_id in JSON?
+        serialized = self.serializer(data=request.data)
+        if serialized.is_valid():
+            serialized.save()
+            return Response(serialized.data, status=status.HTTP_201_CREATED)
+        return Response(serialized.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class BasicDetailAPIView():
+    """
+    Base class for basic REST views.
+    Note that subclass extends this and APIView, so that it
+    is automatically in api-doc.
+    """
+    def __init__(self,model_class,serializer_class):
+        self.model = model_class
+        self.serializer = serializer_class
+
+    @abc.abstractmethod
+    def get_object(self, agency_id, res_id):
+        raise Http404
+
+    def get(self, request, agency_id, res_id, format=None):
+        obj = self.get_object(agency_id, res_id)
+        serialized = self.serializer(obj)
+        return Response(serialized.data)
+
+    def put(self, request, agency_id, res_id, format=None):
+        obj = self.get_object(agency_id, res_id)
+        serialized = self.serializerr(obj, data=request.data)
+        if serialized.is_valid():
+            serialized.save()
+            return Response(serialized.data)
+        return Response(serialized.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, res_id, format=None):
+        route = self.get_object(res_id)
+        route.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+class ServiceListAPIView(BasicListAPIView, APIView):
     """
     List all services, or create a new service.
     """
-    def get(self, request, format=None):
-        services = Service.objects.all()
-        serializer = ServiceSerializer(services, many=True)
-        return Response(serializer.data)
+    def __init__(self):
+        BasicListAPIView.__init__(self,Service,ServiceSerializer)
 
-    def post(self, request, format=None):
-        serializer = ServiceSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-class ServiceDetailAPIView(APIView):
+class ServiceDetailAPIView(BasicDetailAPIView, APIView):
     """
     Retrieve, update or delete a service instance.
     """
-    def get_object(self, pk):
+    def __init__(self):
+        BasicDetailAPIView.__init__(self,Service,ServiceSerializer)
+    
+    def get_object(self, agency_id, res_id):
         try:
-            return Service.objects.get(pk=pk)
-        except Service.DoesNotExist:
+            return self.model.objects.get(agency__agency_id=agency_id, service_id=res_id)
+        except self.model.DoesNotExist:
             raise Http404
 
-    def get(self, request, pk, format=None):
-        service = self.get_object(pk)
-        serializer = ServiceSerializer(service)
-        return Response(serializer.data)
-
-    def put(self, request, pk, format=None):
-        service = self.get_object(pk)
-        serializer = ServiceSerializer(service, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def delete(self, request, pk, format=None):
-        service = self.get_object(pk)
-        service.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-# Create your views here.
-class TripListAPIView(APIView):
+class TripListAPIView(BasicListAPIView, APIView):
     """
     List all trips, or create a new trip.
     """
-    def get(self, request, format=None):
-        trips = Trip.objects.all()
-        serializer = TripSerializer(trips, many=True)
-        return Response(serializer.data)
+    def __init__(self):
+        BasicListAPIView.__init__(self,Trip,TripSerializer)
 
-    def post(self, request, format=None):
-        serializer = TripSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-class TripDetailAPIView(APIView):
+class TripDetailAPIView(BasicDetailAPIView,APIView):
     """
-    Retrieve, update or delete a trip instance.
+    Retrieve, create, update or delete a trip instance.
     """
-    def get_object(self, pk):
+    def __init__(self):
+        BasicDetailAPIView.__init__(self,Trip,TripSerializer)
+    
+    def get_object(self, agency_id, res_id):
         try:
-            return Trip.objects.get(pk=pk)
-        except Trip.DoesNotExist:
+            return self.model.objects.get(agency__agency_id=agency_id, trip_id=res_id)
+        except self.model.DoesNotExist:
             raise Http404
 
-    def get(self, request, pk, format=None):
-        trip = self.get_object(pk)
-        serializer = TripSerializer(trip)
-        return Response(serializer.data)
-
-    def put(self, request, pk, format=None):
-        trip = self.get_object(pk)
-        serializer = TripSerializer(trip, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def delete(self, request, pk, format=None):
-        trip = self.get_object(pk)
-        trip.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-class StopListAPIView(APIView):
+class StopTimesListAPIView(BasicListAPIView,APIView):
     """
-    List all stop, or create a new stop.
+    List all stops time for a certain agency or create a new one.
     """
-    def get(self, request, format=None):
-        stops = Stop.objects.all()
-        serializer = StopSerializer(stops, many=True)
-        return Response(serializer.data)
+    def __init__(self):
+        BasicListAPIView.__init__(self,Stop,StopSerializer)
 
-    def post(self, request, format=None):
-        serializer = StopSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-class StopDetailAPIView(APIView):
+class StopTimeDetailAPIView(APIView):
     """
-    Retrieve, update or delete a stop instance using stop_id.
+    Retrieve, create, update or delete a stop instance.
     """
-    def get_object(self, stop_id):
+    def __init__(self):
+        BasicDetailAPIView.__init__(self,StopTime,StopTimeSerializer)
+    
+    def get_object(self, agency_id, res_id):
         try:
-            return Stop.objects.get(stop_id=stop_id)
-        except Stop.DoesNotExist:
+            return self.model.objects.get(agency__agency_id=agency_id, pk=res_id)
+        except self.model.DoesNotExist:
             raise Http404
 
-    def get(self, request, stop_id, format=None):
-        stop = self.get_object(stop_id)
-        serializer = StopSerializer(stop)
-        return Response(serializer.data)
 
-    def put(self, request, stop_id, format=None):
-        stop = self.get_object(stop_id)
-        serializer = StopSerializer(stop, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+class StopListAPIView(BasicListAPIView, APIView):
+    """
+    List all stops for a given agency or create a new one.
+    """
+    def __init__(self):
+        BasicListAPIView.__init__(self,Stop,StopSerializer)
 
-    def delete(self, request, stop_id, format=None):
-        stop = self.get_object(stop_id)
-        stop.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+class StopDetailAPIView(BasicDetailAPIView,APIView):
+    """
+    Retrieve, create, update or delete a stop instance.
+    """
+    def __init__(self):
+        BasicDetailAPIView.__init__(self,Stop,StopSerializer)
+    
+    def get_object(self, agency_id, res_id):
+        try:
+            return self.model.objects.get(agency__agency_id=agency_id, stop_id=red_is)
+        except self.model.DoesNotExist:
+            raise Http404
 
-class StopTimesListAPIView(APIView):
+class StopDetailTimesAPIView(APIView):
     """
     Retrieve stop times for a stop based on stop_id.
     """
-    def get_object(self, stop_id):
+    def get_object(self, agency_id, stop_id):
         try:
-            return Stop.objects.get(stop_id=stop_id).stoptime_set.all()
+            return Stop.objects.get(agency__agency_id=agency_id,stop_id=stop_id).stoptime_set.all()
         except Stop.DoesNotExist:
             raise Http404
 
@@ -157,46 +177,24 @@ class StopTimesListAPIView(APIView):
         serializer = StopTimeSerializer(stop_time, many=True)
         return Response(serializer.data)
 
-class RouteListAPIView(APIView):
+class RouteListAPIView(BasicListAPIView,APIView):
     """
-    List all routes, or create a new route.
+    List all routes, without the geo route data.
     """
-    def get(self, request, format=None):
-        routes = Route.objects.all()
-        serializer = RouteSerializer(routes, many=True)
-        return Response(serializer.data)
+    def __init__(self):
+        BasicListAPIView.__init__(self,Route,RouteLightSerializer)
+        self.post = None
 
-    def post(self, request, format=None):
-        serializer = RouteSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-class RouteDetailAPIView(APIView):
+class RouteDetailAPIView(BasicDetailAPIView,APIView):
     """
     Retrieve, update or delete a route instance.
     """
-    def get_object(self, pk):
+    def __init__(self):
+        BasicDetailAPIView.__init__(self,Route,RouteSerializer)
+    
+    def get_object(self, agency_id, res_id):
         try:
-            return Route.objects.get(pk=pk)
-        except Route.DoesNotExist:
+            return self.model.objects.get(agency__agency_id=agency_id, route_id=red_id)
+        except self.model.DoesNotExist:
             raise Http404
 
-    def get(self, request, pk, format=None):
-        route = self.get_object(pk)
-        serializer = RouteSerializer(route)
-        return Response(serializer.data)
-
-    def put(self, request, pk, format=None):
-        route = self.get_object(pk)
-        serializer = RouteSerializer(stop, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def delete(self, request, pk, format=None):
-        route = self.get_object(pk)
-        route.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)

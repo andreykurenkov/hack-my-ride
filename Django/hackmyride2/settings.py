@@ -91,8 +91,8 @@ WSGI_APPLICATION = 'hackmyride2.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-         'NAME': 'hackmyridedb',
-         'USER': 'andreyk',
+         'NAME': 'hackmyride',
+         'USER': 'azureuser',
          'PASSWORD': '16253461',# Database password 
          'HOST': '127.0.0.1',
          'PORT': '5432', 
