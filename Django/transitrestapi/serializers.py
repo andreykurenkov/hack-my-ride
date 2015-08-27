@@ -54,7 +54,18 @@ class RouteLightSerializer(serializers.Serializer):
     long_name = serializers.CharField()
     rtype = serializers.IntegerField()
     url = serializers.URLField()
+    id = serializers.IntegerField()
 
 class TripSerializer(serializers.ModelSerializer):
     class Meta:
         model = Trip
+
+class TripLightSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    trip_id = serializers.CharField(max_length=63)
+    short_name = serializers.CharField(max_length=63)
+    direction = serializers.CharField(max_length=10)
+    headsign = serializers.CharField(max_length=63)
+    wheelchair_accessible = serializers.CharField(max_length=10)
+    bikes_allowed = serializers.CharField(max_length=10)
+    route = RouteLightSerializer()

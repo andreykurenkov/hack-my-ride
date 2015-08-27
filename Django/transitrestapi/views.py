@@ -14,187 +14,181 @@ class AgencyListAPIView(generics.ListCreateAPIView):
     """
     List all agencies, or create a new agency.
     """
+    model = Agency
     queryset = Agency.objects.all()
     serializer_class = AgencySerializer
     #TODO permissions
 
 class AgencyDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
     """
-    Retrieve, update or delete a agency instance.
+    Retrieve, update or delete an agency instance.
     """
+    model = Agency
     queryset = Agency.objects.all()
     serializer_class = AgencySerializer
-    lookup_field = 'agency_id'
+    lookup_url_kwarg = 'agency_id'
 
-class BasicListAPIView():
+class RouteListAPIView(generics.ListAPIView):
     """
-    Base class for basic REST list views (list or add new)
-    Note that subclass extends this and APIView, so that it
-    is automatically in api-doc.
+    Retrieve a list of routes
     """
-    def __init__(self,model_class,serializer_class):
-        self.model = model_class
-        self.serializer = serializer_class
+    model = Route
+    serializer_class = RouteLightSerializer
     
-    def get(self, request, agency_id, format=None):
-        objects = self.model.objects.get(agency__agency_id=agency_id)
-        serialized = self.serializer(objects, many=True)
-        return Response(serialized.data)
+    def get_queryset(self):
+        agency_id = self.kwargs['agency_id']
+        return Route.objects.filter(agency__id=agency_id)
 
-    def post(self, request, agency_id, format=None):
-        #TODO verify agency_id in JSON?
-        serialized = self.serializer(data=request.data)
-        if serialized.is_valid():
-            serialized.save()
-            return Response(serialized.data, status=status.HTTP_201_CREATED)
-        return Response(serialized.errors, status=status.HTTP_400_BAD_REQUEST)
-
-class BasicDetailAPIView():
+class TypedRouteListAPIView(generics.ListAPIView):
     """
-    Base class for basic REST views.
-    Note that subclass extends this and APIView, so that it
-    is automatically in api-doc.
+    Retrieve a list of routes
     """
-    def __init__(self,model_class,serializer_class):
-        self.model = model_class
-        self.serializer = serializer_class
+    model = Route
+    serializer_class = RouteLightSerializer
+    
+    def get_queryset(self):
+        agency_id = self.kwargs['agency_id']
+        rtype = self.kwargs['r_type']
+        return Route.objects.filter(agency__id=agency_id,rtype=rtype)
 
-    @abc.abstractmethod
-    def get_object(self, agency_id, res_id):
-        raise Http404
+class RouteDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Retrieve, update, or delete a route
+    """
+    model = Agency
+    queryset = Agency.objects.all()
+    serializer_class = AgencySerializer
+    lookup_url_kwarg = 'route_id'
 
-    def get(self, request, agency_id, res_id, format=None):
-        obj = self.get_object(agency_id, res_id)
-        serialized = self.serializer(obj)
-        return Response(serialized.data)
+class TripListAPIView(generics.ListAPIView):
+    """
+    Retrieve all trips or create new one
+    """
+    model = Trip
+    serializer_class = TripLightSerializer
 
-    def put(self, request, agency_id, res_id, format=None):
-        obj = self.get_object(agency_id, res_id)
-        serialized = self.serializerr(obj, data=request.data)
-        if serialized.is_valid():
-            serialized.save()
+    def get_queryset(self):
+        route_id = self.kwargs['route_id']
+        return Trip.objects.filter(route__id=route_id)
+
+class DistinctTripListAPIView(APIView):
+    """
+    Retrieve distinct trips based on headname
+    """
+    pass
+        
+class TripDetailAPIView(APIView):
+    """
+    Retrieve, update, delete a trip
+    """
+    def __init__(self):
+        self.model = Trip
+        self.serializer = TripSerializer
+
+    def get(self, request, trip_id):
+        try:
+            trip = self.model.objects.get(pk=trip_id)
+            serialized = self.serializer(trip)
             return Response(serialized.data)
-        return Response(serialized.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def delete(self, request, res_id, format=None):
-        route = self.get_object(res_id)
-        route.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-class ServiceListAPIView(BasicListAPIView, APIView):
-    """
-    List all services, or create a new service.
-    """
-    def __init__(self):
-        BasicListAPIView.__init__(self,Service,ServiceSerializer)
-
-class ServiceDetailAPIView(BasicDetailAPIView, APIView):
-    """
-    Retrieve, update or delete a service instance.
-    """
-    def __init__(self):
-        BasicDetailAPIView.__init__(self,Service,ServiceSerializer)
-    
-    def get_object(self, agency_id, res_id):
-        try:
-            return self.model.objects.get(agency__agency_id=agency_id, service_id=res_id)
         except self.model.DoesNotExist:
             raise Http404
 
-class TripListAPIView(BasicListAPIView, APIView):
+class RouteStopsListAPIView(generics.ListAPIView):
     """
-    List all trips, or create a new trip.
+    List all stops for a route
+    Can provide arg to limit to stops with soonest stop times
     """
-    def __init__(self):
-        BasicListAPIView.__init__(self,Trip,TripSerializer)
+    model = Stop
+    serializer_class = StopSerializer
 
-class TripDetailAPIView(BasicDetailAPIView,APIView):
+    def get_queryset(self):
+        route_id = self.kwargs['route_id']
+        trip_ids = Trip.objects.filter(route__id = route_id).values_list("id")
+        stop_ids =  StopTime.objects.filter(trip__id__in=trip_ids).values_list("stop__id")
+        stops = Stop.objects.filter(id__in=stop_ids).distinct()
+        return stops
+
+class StopDetailAPIView(APIView):
     """
-    Retrieve, create, update or delete a trip instance.
+    Retrieve, update, or delete a stop instance
     """
     def __init__(self):
-        BasicDetailAPIView.__init__(self,Trip,TripSerializer)
-    
-    def get_object(self, agency_id, res_id):
+        self.model = Stop
+        self.serializer = StopSerializer
+
+    def get(self, request, agency_id, route_id, stop_id):
         try:
-            return self.model.objects.get(agency__agency_id=agency_id, trip_id=res_id)
+            stop = self.model.objects.get(agency__agency_id=agency_id, route_id=route_id, stop_id=stop_id)
+            serialized = self.serializer(stop)
+            return Response(serialized.data)
         except self.model.DoesNotExist:
             raise Http404
 
-class StopTimesListAPIView(BasicListAPIView,APIView):
+class StopDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
     """
-    List all stops time for a certain agency or create a new one.
+    Retrieve, update or delete an stop time instance.
     """
-    def __init__(self):
-        BasicListAPIView.__init__(self,Stop,StopSerializer)
+    model = Stop
+    queryset = StopTime.objects.all()
+    serializer_class = StopSerializer
+    lookup_url_kwarg = 'stoptime_id'
 
-class StopTimeDetailAPIView(APIView):
+class StopTimesListAPIView(generics.ListAPIView):
     """
-    Retrieve, create, update or delete a stop instance.
+    Retrieve a list of stops times for a given stop
     """
-    def __init__(self):
-        BasicDetailAPIView.__init__(self,StopTime,StopTimeSerializer)
+    model = StopTime
+    serializer_class = StopTimeSerializer
     
-    def get_object(self, agency_id, res_id):
-        try:
-            return self.model.objects.get(agency__agency_id=agency_id, pk=res_id)
-        except self.model.DoesNotExist:
-            raise Http404
+    def get_queryset(self):
+        agency_id = self.kwargs['stop_id']
+        return StopTime.objects.filter(stop__id=stop_id)
 
+class StopTimeDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Retrieve, update or delete an stop time instance.
+    """
+    model = StopTime
+    queryset = StopTime.objects.all()
+    serializer_class = StopTimeSerializer
+    lookup_url_kwarg = 'stoptime_id'
 
-class StopListAPIView(BasicListAPIView, APIView):
-    """
-    List all stops for a given agency or create a new one.
-    """
-    def __init__(self):
-        BasicListAPIView.__init__(self,Stop,StopSerializer)
+from django.contrib.gis.geos import Point
+from django.contrib.gis.measure import D
 
-class StopDetailAPIView(BasicDetailAPIView,APIView):
+class NearestStopsListAPIView(generics.ListAPIView):
     """
-    Retrieve, create, update or delete a stop instance.
+    Get the nearest stops. Should pass in lat, lot, and mile limit
+    as URL query params. Not tested
     """
-    def __init__(self):
-        BasicDetailAPIView.__init__(self,Stop,StopSerializer)
-    
-    def get_object(self, agency_id, res_id):
-        try:
-            return self.model.objects.get(agency__agency_id=agency_id, stop_id=red_is)
-        except self.model.DoesNotExist:
-            raise Http404
+    model = Stop
+    serializer_class = StopSerializer
 
-class StopDetailTimesAPIView(APIView):
-    """
-    Retrieve stop times for a stop based on stop_id.
-    """
-    def get_object(self, agency_id, stop_id):
-        try:
-            return Stop.objects.get(agency__agency_id=agency_id,stop_id=stop_id).stoptime_set.all()
-        except Stop.DoesNotExist:
-            raise Http404
+    def get_queryset(self):
+        lat = self.GET.get('lat')
+        lon = self.GET.get('lon')
+        limit = self.GET.get('limit')
+        point = Point(lon,lat)
+        stops = Stop.objects.filter(point__distance_lte=(point, D(mi=limit))
+                                             ).distance(point).order_by('distance')
+        return stops
 
-    def get(self, request, stop_id, format=None):
-        stop_time = self.get_object(stop_id)
-        serializer = StopTimeSerializer(stop_time, many=True)
-        return Response(serializer.data)
+class NearestAgencyAPIView(generics.ListAPIView):
+    """
+    Get the nearest agency of the nearest. Should pass in lat, lot, and mile limit
+    as URL query params. Not tested.
+    """
+    model = Agency
+    serializer_class = StopSerializer
 
-class RouteListAPIView(BasicListAPIView,APIView):
-    """
-    List all routes, without the geo route data.
-    """
-    def __init__(self):
-        BasicListAPIView.__init__(self,Route,RouteLightSerializer)
-        self.post = None
-
-class RouteDetailAPIView(BasicDetailAPIView,APIView):
-    """
-    Retrieve, update or delete a route instance.
-    """
-    def __init__(self):
-        BasicDetailAPIView.__init__(self,Route,RouteSerializer)
-    
-    def get_object(self, agency_id, res_id):
-        try:
-            return self.model.objects.get(agency__agency_id=agency_id, route_id=red_id)
-        except self.model.DoesNotExist:
-            raise Http404
-
+    def get_queryset(self):
+        lat = self.GET.get('lat')
+        lon = self.GET.get('lon')
+        limit = self.GET.get('limit')
+        point = Point(lon,lat)
+        stop = Stop.objects.filter(point__distance_lte=(point, D(mi=limit))
+                                             ).distance(point).order_by('distance')[0]
+        stoptime = stop.stop_time_set
+        trip = stoptime.trip
+        route = trip.route
+        return route.agency
