@@ -69,6 +69,9 @@ public class TransitSystemFragment extends Fragment
         {
             super(fm);
             fragments = new Fragment[3];
+            fragments[0] = new RouteListFragment();
+            fragments[1] = new Fragment();
+            fragments[2] = new Fragment();
         }
 
         @Override
@@ -78,7 +81,7 @@ public class TransitSystemFragment extends Fragment
 
         @Override
         public Fragment getItem(int position) {
-            return new Fragment();
+            return fragments[position];
         }
 
         @Override
