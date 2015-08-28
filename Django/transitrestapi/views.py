@@ -1,202 +1,194 @@
 from django.shortcuts import render
+from rest_framework import generics
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from multigtfs.models import (
-    Block, Fare, FareRule, Feed, Frequency, Route, Service, ServiceDate, Shape,
+    Agency, Block, Fare, FareRule, Feed, Frequency, Route, Service, ServiceDate, Shape,
     ShapePoint, Stop, StopTime, Trip)
 from transitrestapi.serializers import *
+from django.http import Http404
+import abc 
 
-# Create your views here.
-class ServiceListAPIView(APIView):
+class AgencyListAPIView(generics.ListCreateAPIView):
     """
-    List all services, or create a new service.
+    List all agencies, or create a new agency.
     """
-    def get(self, request, format=None):
-        services = Service.objects.all()
-        serializer = ServiceSerializer(services, many=True)
-        return Response(serializer.data)
+    model = Agency
+    queryset = Agency.objects.all()
+    serializer_class = AgencySerializer
+    #TODO permissions
 
-    def post(self, request, format=None):
-        serializer = ServiceSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-class ServiceDetailAPIView(APIView):
+class AgencyDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
     """
-    Retrieve, update or delete a service instance.
+    Retrieve, update or delete an agency instance.
     """
-    def get_object(self, pk):
-        try:
-            return Service.objects.get(pk=pk)
-        except Service.DoesNotExist:
-            raise Http404
+    model = Agency
+    queryset = Agency.objects.all()
+    serializer_class = AgencySerializer
+    lookup_url_kwarg = 'agency_id'
 
-    def get(self, request, pk, format=None):
-        service = self.get_object(pk)
-        serializer = ServiceSerializer(service)
-        return Response(serializer.data)
-
-    def put(self, request, pk, format=None):
-        service = self.get_object(pk)
-        serializer = ServiceSerializer(service, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def delete(self, request, pk, format=None):
-        service = self.get_object(pk)
-        service.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-# Create your views here.
-class TripListAPIView(APIView):
+class RouteListAPIView(generics.ListAPIView):
     """
-    List all trips, or create a new trip.
+    Retrieve a list of routes
     """
-    def get(self, request, format=None):
-        trips = Trip.objects.all()
-        serializer = TripSerializer(trips, many=True)
-        return Response(serializer.data)
+    model = Route
+    serializer_class = RouteLightSerializer
+    
+    def get_queryset(self):
+        agency_id = self.kwargs['agency_id']
+        return Route.objects.filter(agency__id=agency_id)
 
-    def post(self, request, format=None):
-        serializer = TripSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+class TypedRouteListAPIView(generics.ListAPIView):
+    """
+    Retrieve a list of routes
+    """
+    model = Route
+    serializer_class = RouteLightSerializer
+    
+    def get_queryset(self):
+        agency_id = self.kwargs['agency_id']
+        rtype = self.kwargs['r_type']
+        return Route.objects.filter(agency__id=agency_id,rtype=rtype)
 
+class RouteDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Retrieve, update, or delete a route
+    """
+    model = Agency
+    queryset = Agency.objects.all()
+    serializer_class = AgencySerializer
+    lookup_url_kwarg = 'route_id'
+
+class TripListAPIView(generics.ListAPIView):
+    """
+    Retrieve all trips or create new one
+    """
+    model = Trip
+    serializer_class = TripLightSerializer
+
+    def get_queryset(self):
+        route_id = self.kwargs['route_id']
+        return Trip.objects.filter(route__id=route_id)
+
+class DistinctTripListAPIView(APIView):
+    """
+    Retrieve distinct trips based on headname
+    """
+    pass
+        
 class TripDetailAPIView(APIView):
     """
-    Retrieve, update or delete a trip instance.
+    Retrieve, update, delete a trip
     """
-    def get_object(self, pk):
+    def __init__(self):
+        self.model = Trip
+        self.serializer = TripSerializer
+
+    def get(self, request, trip_id):
         try:
-            return Trip.objects.get(pk=pk)
-        except Trip.DoesNotExist:
+            trip = self.model.objects.get(pk=trip_id)
+            serialized = self.serializer(trip)
+            return Response(serialized.data)
+        except self.model.DoesNotExist:
             raise Http404
 
-    def get(self, request, pk, format=None):
-        trip = self.get_object(pk)
-        serializer = TripSerializer(trip)
-        return Response(serializer.data)
-
-    def put(self, request, pk, format=None):
-        trip = self.get_object(pk)
-        serializer = TripSerializer(trip, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def delete(self, request, pk, format=None):
-        trip = self.get_object(pk)
-        trip.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-class StopListAPIView(APIView):
+class RouteStopsListAPIView(generics.ListAPIView):
     """
-    List all stop, or create a new stop.
+    List all stops for a route
+    Can provide arg to limit to stops with soonest stop times
     """
-    def get(self, request, format=None):
-        stops = Stop.objects.all()
-        serializer = StopSerializer(stops, many=True)
-        return Response(serializer.data)
+    model = Stop
+    serializer_class = StopSerializer
 
-    def post(self, request, format=None):
-        serializer = StopSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def get_queryset(self):
+        route_id = self.kwargs['route_id']
+        trip_ids = Trip.objects.filter(route__id = route_id).values_list("id")
+        stop_ids =  StopTime.objects.filter(trip__id__in=trip_ids).values_list("stop__id")
+        stops = Stop.objects.filter(id__in=stop_ids).distinct()
+        return stops
 
 class StopDetailAPIView(APIView):
     """
-    Retrieve, update or delete a stop instance using stop_id.
+    Retrieve, update, or delete a stop instance
     """
-    def get_object(self, stop_id):
+    def __init__(self):
+        self.model = Stop
+        self.serializer = StopSerializer
+
+    def get(self, request, agency_id, route_id, stop_id):
         try:
-            return Stop.objects.get(stop_id=stop_id)
-        except Stop.DoesNotExist:
+            stop = self.model.objects.get(agency__agency_id=agency_id, route_id=route_id, stop_id=stop_id)
+            serialized = self.serializer(stop)
+            return Response(serialized.data)
+        except self.model.DoesNotExist:
             raise Http404
 
-    def get(self, request, stop_id, format=None):
-        stop = self.get_object(stop_id)
-        serializer = StopSerializer(stop)
-        return Response(serializer.data)
-
-    def put(self, request, stop_id, format=None):
-        stop = self.get_object(stop_id)
-        serializer = StopSerializer(stop, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def delete(self, request, stop_id, format=None):
-        stop = self.get_object(stop_id)
-        stop.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-class StopTimesListAPIView(APIView):
+class StopDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
     """
-    Retrieve stop times for a stop based on stop_id.
+    Retrieve, update or delete an stop time instance.
     """
-    def get_object(self, stop_id):
-        try:
-            return Stop.objects.get(stop_id=stop_id).stoptime_set.all()
-        except Stop.DoesNotExist:
-            raise Http404
+    model = Stop
+    queryset = StopTime.objects.all()
+    serializer_class = StopSerializer
+    lookup_url_kwarg = 'stoptime_id'
 
-    def get(self, request, stop_id, format=None):
-        stop_time = self.get_object(stop_id)
-        serializer = StopTimeSerializer(stop_time, many=True)
-        return Response(serializer.data)
-
-class RouteListAPIView(APIView):
+class StopTimesListAPIView(generics.ListAPIView):
     """
-    List all routes, or create a new route.
+    Retrieve a list of stops times for a given stop
     """
-    def get(self, request, format=None):
-        routes = Route.objects.all()
-        serializer = RouteSerializer(routes, many=True)
-        return Response(serializer.data)
+    model = StopTime
+    serializer_class = StopTimeSerializer
+    
+    def get_queryset(self):
+        agency_id = self.kwargs['stop_id']
+        return StopTime.objects.filter(stop__id=stop_id)
 
-    def post(self, request, format=None):
-        serializer = RouteSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-class RouteDetailAPIView(APIView):
+class StopTimeDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
     """
-    Retrieve, update or delete a route instance.
+    Retrieve, update or delete an stop time instance.
     """
-    def get_object(self, pk):
-        try:
-            return Route.objects.get(pk=pk)
-        except Route.DoesNotExist:
-            raise Http404
+    model = StopTime
+    queryset = StopTime.objects.all()
+    serializer_class = StopTimeSerializer
+    lookup_url_kwarg = 'stoptime_id'
 
-    def get(self, request, pk, format=None):
-        route = self.get_object(pk)
-        serializer = RouteSerializer(route)
-        return Response(serializer.data)
+from django.contrib.gis.geos import Point
+from django.contrib.gis.measure import D
 
-    def put(self, request, pk, format=None):
-        route = self.get_object(pk)
-        serializer = RouteSerializer(stop, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+class NearestStopsListAPIView(generics.ListAPIView):
+    """
+    Get the nearest stops. Should pass in lat, lot, and mile limit
+    as URL query params. Not tested
+    """
+    model = Stop
+    serializer_class = StopSerializer
 
-    def delete(self, request, pk, format=None):
-        route = self.get_object(pk)
-        route.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+    def get_queryset(self):
+        lat = self.GET.get('lat')
+        lon = self.GET.get('lon')
+        limit = self.GET.get('limit')
+        point = Point(lon,lat)
+        stops = Stop.objects.filter(point__distance_lte=(point, D(mi=limit))
+                                             ).distance(point).order_by('distance')
+        return stops
+
+class NearestAgencyAPIView(generics.ListAPIView):
+    """
+    Get the nearest agency of the nearest. Should pass in lat, lot, and mile limit
+    as URL query params. Not tested.
+    """
+    model = Agency
+    serializer_class = StopSerializer
+
+    def get_queryset(self):
+        lat = self.GET.get('lat')
+        lon = self.GET.get('lon')
+        limit = self.GET.get('limit')
+        point = Point(lon,lat)
+        stop = Stop.objects.filter(point__distance_lte=(point, D(mi=limit))
+                                             ).distance(point).order_by('distance')[0]
+        stoptime = stop.stop_time_set
+        trip = stoptime.trip
+        route = trip.route
+        return route.agency

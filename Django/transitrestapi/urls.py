@@ -6,22 +6,44 @@ from django.contrib import admin
 admin.autodiscover()
 
 urlpatterns = patterns('',
-    url(r'routes/$',
-        RouteListAPIView.as_view(), name='fares'),
-    url(r'route/(?P<pk>[^/]+)/?$',
-        RouteDetailAPIView.as_view(), name='fare_detail'),
-    url(r'stops/$',
-        StopListAPIView.as_view(), name='stops'),
+    url(r'nearest/$',
+        NearestStopsListAPIView.as_view(), name='nearest stops'),
+    
+    url(r'nearest/agency$',
+        NearestAgencyAPIView.as_view(), name='nearest agency'),
+    
+    url(r'agencies/$',
+        AgencyListAPIView.as_view(), name='agencies'),
+
+    url(r'agency/(?P<agency_id>[^/]+)/?$',
+        AgencyDetailAPIView.as_view(), name='agency_detail'),
+
+    url(r'agency/(?P<agency_id>[^/]+)/routes/?$',
+        RouteListAPIView.as_view(), name='routes'),
+    
+    url(r'agency/(?P<agency_id>[^/]+)/routes/?(?P<r_type>[^/]+)$',
+        TypedRouteListAPIView.as_view(), name='typed routes'),
+
+    url(r'route/(?P<route_id>[^/]+)/?$',
+        RouteDetailAPIView.as_view(), name='route_detail'),
+
+    url(r'route/(?P<route_id>[^/]+)/stops/?$',
+        RouteStopsListAPIView.as_view(), name='route stops'),
+    
     url(r'stop/(?P<stop_id>[^/]+)/?$',
         StopDetailAPIView.as_view(), name='stop_detail'),
-    url(r'stop/(?P<stop_id>[^/]+)/times?$',
-        StopTimesListAPIView.as_view(), name='stop_detail_times'),
-    url(r'trips/$',
+
+    url(r'stop/(?P<stop_id>[^/]+)/times/?$',
+        StopTimesListAPIView.as_view(), name='stop times'),
+    
+    url(r'stop_time/(?P<stop_time_id>[^/]+)/?$',
+        StopTimeDetailAPIView.as_view(), name='stop_time_detail'),
+    
+    url(r'route/(?P<route_id>[^/]+)/trips/?$',
         TripListAPIView.as_view(), name='trips'),
-    url(r'trip/(?P<pk>[^/]+)/?$',
+
+    url(r'trip/(?P<trip_id>[^/]+)/?$',
         TripDetailAPIView.as_view(), name='trip_detail'),
-    url(r'services/$',
-        ServiceListAPIView.as_view(), name='services'),
-    url(r'service/(?P<pk>[^/]+)/?$',
-        ServiceDetailAPIView.as_view(), name='service_detail'),
+
+
 )
