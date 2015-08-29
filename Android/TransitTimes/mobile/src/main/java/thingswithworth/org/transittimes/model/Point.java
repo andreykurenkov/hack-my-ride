@@ -6,12 +6,12 @@ package thingswithworth.org.transittimes.model;
 public class Point
 {
     private String type;
-    private int[] coordinates;
+    private double[] coordinates;
 
     public Point() {
     }
 
-    public Point(String type, int[] coordinates) {
+    public Point(String type, double[] coordinates) {
         this.type = type;
         this.coordinates = coordinates;
     }
@@ -24,11 +24,11 @@ public class Point
         this.type = type;
     }
 
-    public int[] getCoordinates() {
+    public double[] getCoordinates() {
         return coordinates;
     }
 
-    public void setCoordinates(int[] coordinates) {
+    public void setCoordinates(double[] coordinates) {
         this.coordinates = coordinates;
     }
 }

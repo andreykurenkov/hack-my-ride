@@ -1,6 +1,9 @@
 package thingswithworth.org.transittimes.model;
 
+import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
+
+import java.util.List;
 
 /**
  * Created by Alex on 8/27/2015.
@@ -9,14 +12,37 @@ public class Route
 {
     public enum RouteType
     {
-        LIGHTRAIL,
-        SUBWAY,
-        RAIL,
-        BUS,
-        FERRY,
-        CABLECAR,
-        GONDOLA,
-        FUNICULAR
+        LIGHTRAIL(0),
+        SUBWAY(1),
+        RAIL(2),
+        BUS(3),
+        FERRY(4),
+        CABLECAR(5),
+        GONDOLA(6),
+        FUNICULAR(7);
+
+        private final int key;
+
+        RouteType(int key)
+        {
+            this.key = key;
+        }
+        public int getKey()
+        {
+            return this.key;
+        }
+
+        public static RouteType fromKey(int key)
+        {
+            for(RouteType type: RouteType.values())
+            {
+                if(type.getKey() == key)
+                {
+                    return type;
+                }
+            }
+            return null;
+        }
     }
 
     private int id;
@@ -27,6 +53,8 @@ public class Route
     private String route_desc;
     @SerializedName("rtype")
     private RouteType route_type;
+    @Expose(deserialize = false)
+    private List<Stop> stops;
 
     public Route() {
     }
@@ -96,5 +124,13 @@ public class Route
 
     public void setRoute_type(RouteType route_type) {
         this.route_type = route_type;
+    }
+
+    public List<Stop> getStops() {
+        return stops;
+    }
+
+    public void setStops(List<Stop> stops) {
+        this.stops = stops;
     }
 }

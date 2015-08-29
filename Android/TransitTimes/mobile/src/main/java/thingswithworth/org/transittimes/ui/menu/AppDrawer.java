@@ -11,12 +11,12 @@ import com.mikepenz.materialdrawer.model.PrimaryDrawerItem;
  */
 public class AppDrawer extends Drawer {
 
-    public AppDrawer(){
-        addDrawerItems(new PrimaryDrawerItem().withName("Settings"));
-        addDrawerItems(new DividerDrawerItem());
-        addDrawerItems(new DividerDrawerItem());
-
-        //TOADD
-
-    }
+//    public AppDrawer(){
+//        addDrawerItems(new PrimaryDrawerItem().withName("Settings"));
+//        addDrawerItems(new DividerDrawerItem());
+//        addDrawerItems(new DividerDrawerItem());
+//
+//        //TOADD
+//
+//    }
 }

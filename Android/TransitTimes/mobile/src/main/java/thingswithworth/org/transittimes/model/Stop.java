@@ -13,6 +13,7 @@ public class Stop
     @SerializedName("desc")
     private String description;
     private Point point;
+    private String name;
 
 
     public Stop() {
@@ -64,5 +65,13 @@ public class Stop
 
     public void setPoint(Point point) {
         this.point = point;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 }

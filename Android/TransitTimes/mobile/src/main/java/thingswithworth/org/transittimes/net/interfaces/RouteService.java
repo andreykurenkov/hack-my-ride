@@ -6,6 +6,7 @@ import retrofit.http.GET;
 import retrofit.http.Path;
 import rx.Observable;
 import thingswithworth.org.transittimes.model.Route;
+import thingswithworth.org.transittimes.model.Stop;
 
 /**
  * Created by Alex on 8/27/2015.
@@ -17,4 +18,7 @@ public interface RouteService
 
     @GET("/api/route/{route_id}")
     public Observable<Route> getRoute(@Path("route_id") int route_id);
+
+    @GET("/api/route/{route_id}/stops")
+    public Observable<List<Stop>> getStops(@Path("route_id") int route_id);
 }
