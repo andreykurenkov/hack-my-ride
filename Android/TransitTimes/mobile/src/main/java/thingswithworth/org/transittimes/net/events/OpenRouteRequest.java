@@ -1,11 +1,8 @@
-package thingswithworth.org.transittimes.net.bus.events;
+package thingswithworth.org.transittimes.net.events;
 
 import android.app.Dialog;
 
-import java.util.List;
-
 import thingswithworth.org.transittimes.model.Route;
-import thingswithworth.org.transittimes.model.Stop;
 
 /**
  * Created by Alex on 8/28/2015.
