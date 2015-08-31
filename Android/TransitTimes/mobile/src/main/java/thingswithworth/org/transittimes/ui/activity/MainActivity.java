@@ -14,6 +14,7 @@ import com.mikepenz.materialdrawer.Drawer;
 import com.mikepenz.materialdrawer.model.DividerDrawerItem;
 import com.mikepenz.materialdrawer.model.PrimaryDrawerItem;
 import com.mikepenz.materialdrawer.model.interfaces.IDrawerItem;
+import com.squareup.otto.Subscribe;
 
 import org.altbeacon.beacon.Beacon;
 import org.altbeacon.beacon.BeaconConsumer;
@@ -28,13 +29,19 @@ import java.util.Collection;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import thingswithworth.org.transittimes.R;
+import thingswithworth.org.transittimes.TransitTimesApplication;
+import thingswithworth.org.transittimes.net.bus.BusWrapper;
+import thingswithworth.org.transittimes.net.bus.events.OpenRouteRequest;
+import thingswithworth.org.transittimes.ui.fragment.RouteDetailFragment;
 import thingswithworth.org.transittimes.ui.fragment.TransitSystemFragment;
+import thingswithworth.org.transittimes.ui.menu.AppDrawer;
 
 
-public class MainActivity extends AppCompatActivity implements BeaconConsumer, RangeNotifier {
+public class MainActivity extends AppCompatActivity  {
     private static String TAG = "MainActivity";
     private BeaconManager mBeaconManager;
     private TransitSystemFragment systemFragment;
+    private RouteDetailFragment routeDetailFragment;
 
     @Bind(R.id.toolbar)
     Toolbar mToolbar;
@@ -45,15 +52,18 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer, R
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 
+        BusWrapper.getBus().register(this);
+
         mToolbar.setTitle("TransitTimes");
         setSupportActionBar(mToolbar);
 
-        final Drawer.Result drawer = new Drawer().withActivity(this)
+        final Drawer.Result drawer = new AppDrawer().withActivity(this)
                 .withToolbar(mToolbar)
                 .addDrawerItems(
-                        new PrimaryDrawerItem().withName("Text"),
-                        new DividerDrawerItem()
-                ).withOnDrawerListener(new Drawer.OnDrawerListener() {
+                        new PrimaryDrawerItem().withName("VTA").withIdentifier(1),
+                        new PrimaryDrawerItem().withName("MARTA").withIdentifier(2)
+                )
+                .withOnDrawerListener(new Drawer.OnDrawerListener() {
                     @Override
                     public void onDrawerOpened(View view) {
 
@@ -74,6 +84,7 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer, R
 
         if (savedInstanceState == null) {
             systemFragment = new TransitSystemFragment();
+            routeDetailFragment = new RouteDetailFragment();
             getSupportFragmentManager().beginTransaction()
                     .add(R.id.container, systemFragment)
                     .commit();
@@ -95,49 +106,32 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer, R
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
         return super.onOptionsItemSelected(item);
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        mBeaconManager = BeaconManager.getInstanceForApplication(this.getApplicationContext());
-        // Detect the URL frame:
-        mBeaconManager.getBeaconParsers().add(new BeaconParser().
-                setBeaconLayout("s:0-1=feaa,m:2-2=10,p:3-3:-41,i:4-20"));
-        mBeaconManager.bind(this);
-    }
-
-    public void onBeaconServiceConnect() {
-        Region region = new Region("all-beacons-region", null, null, null);
-        try {
-            mBeaconManager.startRangingBeaconsInRegion(region);
-        } catch (RemoteException e) {
-            e.printStackTrace();
-        }
-        mBeaconManager.setRangeNotifier(this);
-    }
-
-    @Override
-    public void didRangeBeaconsInRegion(Collection<Beacon> beacons, Region region) {
-        for (Beacon beacon: beacons) {
-            if (beacon.getServiceUuid() == 0xfeaa && beacon.getBeaconTypeCode() == 0x10) {
-                // This is a Eddystone-URL frame
-                String url = UrlBeaconUrlCompressor.uncompress(beacon.getId1().toByteArray());
-                Log.d(TAG, "I see a beacon transmitting a url: " + url +
-                        " approximately " + beacon.getDistance() + " meters away.");
-            }
-        }
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        mBeaconManager.unbind(this);
+    }
+
+    @Subscribe
+    public void onOpenRoute(OpenRouteRequest openRouteRequest)
+    {
+        runOnUiThread(()-> {
+            if (openRouteRequest.getDialog() != null) {
+                openRouteRequest.getDialog().hide();
+            }
+
+            routeDetailFragment.updateRoute(openRouteRequest.getRoute());
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.container, routeDetailFragment)
+                    .addToBackStack("")
+                    .commit();
+        });
     }
 }
