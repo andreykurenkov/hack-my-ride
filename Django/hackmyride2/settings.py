@@ -43,6 +43,7 @@ INSTALLED_APPS = (
     'multigtfs',
     'exploreapp',
     'transitrestapi',
+    'realtimerestapi',
 )
 
 POSTGIS_VERSION = (2, 1, 0)

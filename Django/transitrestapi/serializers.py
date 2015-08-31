@@ -44,6 +44,7 @@ class StopTimeSerializer(serializers.ModelSerializer):
         model = StopTime
 
 class RouteSerializer(serializers.ModelSerializer):
+    agency = AgencySerializer()
     class Meta:
         model = Route
 

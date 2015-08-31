@@ -55,9 +55,9 @@ class RouteDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
     """
     Retrieve, update, or delete a route
     """
-    model = Agency
-    queryset = Agency.objects.all()
-    serializer_class = AgencySerializer
+    model = Route
+    queryset = Route.objects.all()
+    serializer_class = RouteSerializer
     lookup_url_kwarg = 'route_id'
 
 class TripListAPIView(generics.ListAPIView):
@@ -192,3 +192,4 @@ class NearestAgencyAPIView(generics.ListAPIView):
         trip = stoptime.trip
         route = trip.route
         return route.agency
+
