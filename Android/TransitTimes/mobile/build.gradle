@@ -52,7 +52,8 @@ dependencies {
 
     compile 'com.jakewharton:butterknife:7.0.1'
 
-    compile 'com.squareup.retrofit:retrofit:1.9.0'
-
     compile 'com.joanzapata.android:android-iconify:1.0.9'
+
+    compile 'com.squareup.okhttp:okhttp:2.5.0'
+
 }

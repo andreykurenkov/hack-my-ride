@@ -19,13 +19,11 @@ import java.util.List;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import rx.Observable;
-import rx.Scheduler;
-import rx.schedulers.Schedulers;
 import thingswithworth.org.transittimes.R;
+import thingswithworth.org.transittimes.TransitTimesApplication;
 import thingswithworth.org.transittimes.model.Route;
-import thingswithworth.org.transittimes.net.bus.BusWrapper;
-import thingswithworth.org.transittimes.net.bus.events.OpenRouteRequest;
-import thingswithworth.org.transittimes.net.serivice.TransitTimesService;
+import thingswithworth.org.transittimes.net.events.OpenRouteRequest;
+import thingswithworth.org.transittimes.net.service.TransitTimesRESTServices;
 
 /**
  * Created by Alex on 8/27/2015.
@@ -53,14 +51,14 @@ public class RouteAdapter extends RecyclerView.Adapter<RouteAdapter.ViewHolder>
     private List<Route> mRouteList;
     private Context mContext;
     private Bus mBus;
-    private TransitTimesService mService;
+    private TransitTimesRESTServices mService;
 
     public RouteAdapter(List<Route> items, Context context)
     {
         mRouteList = items;
         mContext = context;
-        mBus = BusWrapper.getBus();
-        mService = TransitTimesService.getInstance();
+        mBus = TransitTimesApplication.getBus();
+        mService = TransitTimesRESTServices.getInstance();
     }
 
     @Override

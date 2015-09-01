@@ -1,28 +1,24 @@
 package thingswithworth.org.transittimes;
 
 import android.app.Application;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
-import android.app.TaskStackBuilder;
-import android.content.Context;
 import android.content.Intent;
-import android.os.RemoteException;
-import android.support.v4.app.NotificationCompat;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
-import org.altbeacon.beacon.Beacon;
-import org.altbeacon.beacon.BeaconConsumer;
+import com.squareup.otto.Bus;
+import com.squareup.otto.ThreadEnforcer;
+
 import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.BeaconParser;
-import org.altbeacon.beacon.RangeNotifier;
 import org.altbeacon.beacon.Region;
 import org.altbeacon.beacon.powersave.BackgroundPowerSaver;
 import org.altbeacon.beacon.startup.BootstrapNotifier;
 import org.altbeacon.beacon.startup.RegionBootstrap;
-import org.altbeacon.beacon.utils.UrlBeaconUrlCompressor;
 
-import java.util.Collection;
-
+import thingswithworth.org.transittimes.bluetooth.service.BeaconMonitoringService;
+import thingswithworth.org.transittimes.model.SharedPreferencesModel;
+import thingswithworth.org.transittimes.net.service.TransitTimesRESTServices;
 import thingswithworth.org.transittimes.ui.activity.MainActivity;
 
 /**
@@ -35,8 +31,19 @@ public class TransitTimesApplication  extends Application implements BootstrapNo
     private boolean haveDetectedBeaconsSinceBoot = false;
     private MainActivity monitoringActivity = null;
     private static BeaconManager beaconManager;
+    private static Bus instance;
 
-    protected static BeaconManager getBeaconManager(){
+    public static Bus getBus()
+    {
+        if(instance == null)
+        {
+            instance = new Bus(ThreadEnforcer.ANY);
+        }
+        return instance;
+    }
+
+
+    public static BeaconManager getBeaconManager(){
         Log.d(TAG, "Called get for beacon "+beaconManager);
 
         return beaconManager;
@@ -62,14 +69,18 @@ public class TransitTimesApplication  extends Application implements BootstrapNo
         // If you wish to test beacon detection in the Android Emulator, you can use code like this:
         // BeaconManager.setBeaconSimulator(new TimedBeaconSimulator() );
         // ((TimedBeaconSimulator) BeaconManager.getBeaconSimulator()).createTimedSimulatedBeacons();
-        startService(new Intent(this, NotifyingService.class));
+        startService(new Intent(this, BeaconMonitoringService.class));
+
+        TransitTimesRESTServices.init(this);
+
+        SharedPreferencesModel.init(PreferenceManager.getDefaultSharedPreferences(this));
 
     }
 
     @Override
     public void didEnterRegion(Region region) {
        Log.d(TAG, "Entered region.");
-        startService(new Intent(getApplicationContext(), NotifyingService.class));
+        startService(new Intent(getApplicationContext(), BeaconMonitoringService.class));
 
     }
 

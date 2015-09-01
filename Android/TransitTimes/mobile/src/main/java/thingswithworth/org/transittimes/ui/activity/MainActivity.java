@@ -1,6 +1,5 @@
 package thingswithworth.org.transittimes.ui.activity;
 
-import android.os.RemoteException;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -8,30 +7,20 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
 
 import com.mikepenz.materialdrawer.Drawer;
-import com.mikepenz.materialdrawer.model.DividerDrawerItem;
 import com.mikepenz.materialdrawer.model.PrimaryDrawerItem;
-import com.mikepenz.materialdrawer.model.interfaces.IDrawerItem;
 import com.squareup.otto.Subscribe;
 
-import org.altbeacon.beacon.Beacon;
-import org.altbeacon.beacon.BeaconConsumer;
 import org.altbeacon.beacon.BeaconManager;
-import org.altbeacon.beacon.BeaconParser;
-import org.altbeacon.beacon.RangeNotifier;
-import org.altbeacon.beacon.Region;
-import org.altbeacon.beacon.utils.UrlBeaconUrlCompressor;
-
-import java.util.Collection;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import thingswithworth.org.transittimes.R;
 import thingswithworth.org.transittimes.TransitTimesApplication;
-import thingswithworth.org.transittimes.net.bus.BusWrapper;
-import thingswithworth.org.transittimes.net.bus.events.OpenRouteRequest;
+import thingswithworth.org.transittimes.bluetooth.BluetoothUtil;
+import thingswithworth.org.transittimes.bluetooth.events.NewBeaconSeen;
+import thingswithworth.org.transittimes.net.events.OpenRouteRequest;
 import thingswithworth.org.transittimes.ui.fragment.RouteDetailFragment;
 import thingswithworth.org.transittimes.ui.fragment.TransitSystemFragment;
 import thingswithworth.org.transittimes.ui.menu.AppDrawer;
@@ -52,7 +41,7 @@ public class MainActivity extends AppCompatActivity  {
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 
-        BusWrapper.getBus().register(this);
+        TransitTimesApplication.getBus().register(this);
 
         mToolbar.setTitle("TransitTimes");
         setSupportActionBar(mToolbar);
@@ -122,6 +111,8 @@ public class MainActivity extends AppCompatActivity  {
     @Subscribe
     public void onOpenRoute(OpenRouteRequest openRouteRequest)
     {
+        Log.d(TAG,"New OpenRouteRequest seen: "+openRouteRequest.getRoute().getRoute_id());
+
         runOnUiThread(()-> {
             if (openRouteRequest.getDialog() != null) {
                 openRouteRequest.getDialog().hide();
@@ -133,5 +124,11 @@ public class MainActivity extends AppCompatActivity  {
                     .addToBackStack("")
                     .commit();
         });
+    }
+
+    @Subscribe
+    public void onNewBeacon(NewBeaconSeen seenBeacon)
+    {
+        Log.d(TAG,"Bus event for ID "+ seenBeacon.getStopId());
     }
 }

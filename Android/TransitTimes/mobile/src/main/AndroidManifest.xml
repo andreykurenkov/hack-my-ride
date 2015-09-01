@@ -25,7 +25,7 @@
             android:value="@integer/google_play_services_version" />
 
         <service
-            android:name=".NotifyingService"
+            android:name=".bluetooth.service.BeaconMonitoringService"
             android:exported="false"/>
         <activity
             android:name=".ui.activity.MainActivity"

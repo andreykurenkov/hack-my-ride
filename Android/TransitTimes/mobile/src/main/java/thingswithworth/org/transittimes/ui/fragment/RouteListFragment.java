@@ -17,7 +17,7 @@ import butterknife.Bind;
 import butterknife.ButterKnife;
 import thingswithworth.org.transittimes.R;
 import thingswithworth.org.transittimes.model.Route;
-import thingswithworth.org.transittimes.net.serivice.TransitTimesService;
+import thingswithworth.org.transittimes.net.service.TransitTimesRESTServices;
 import thingswithworth.org.transittimes.ui.adapters.RouteAdapter;
 
 /**
@@ -32,7 +32,7 @@ public class RouteListFragment extends Fragment
     ProgressBar mLoadingCircle;
 
     private List<Route> mRouteList;
-    private TransitTimesService mTransitTimesService;
+    private TransitTimesRESTServices mTransitTimesService;
     private RouteAdapter mRouteAdapter;
 
     @Override
@@ -60,7 +60,7 @@ public class RouteListFragment extends Fragment
         mRecyclerView.setAdapter(mRouteAdapter);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
 
-        mTransitTimesService = TransitTimesService.getInstance();
+        mTransitTimesService = TransitTimesRESTServices.getInstance();
         mTransitTimesService.routeService.getRoutes(1).subscribe((routes)->
         {
              mRouteList.clear();
