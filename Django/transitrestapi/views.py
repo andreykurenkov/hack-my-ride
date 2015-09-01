@@ -108,30 +108,14 @@ class RouteStopsListAPIView(generics.ListAPIView):
         stops = Stop.objects.filter(id__in=stop_ids).distinct()
         return stops
 
-class StopDetailAPIView(APIView):
-    """
-    Retrieve, update, or delete a stop instance
-    """
-    def __init__(self):
-        self.model = Stop
-        self.serializer = StopSerializer
-
-    def get(self, request, agency_id, route_id, stop_id):
-        try:
-            stop = self.model.objects.get(agency__agency_id=agency_id, route_id=route_id, stop_id=stop_id)
-            serialized = self.serializer(stop)
-            return Response(serialized.data)
-        except self.model.DoesNotExist:
-            raise Http404
-
 class StopDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
     """
     Retrieve, update or delete an stop time instance.
     """
     model = Stop
-    queryset = StopTime.objects.all()
+    queryset = Stop.objects.all()
     serializer_class = StopSerializer
-    lookup_url_kwarg = 'stoptime_id'
+    lookup_url_kwarg = 'stop_id'
 
 class StopTimesListAPIView(generics.ListAPIView):
     """
@@ -151,7 +135,7 @@ class StopTimeDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
     model = StopTime
     queryset = StopTime.objects.all()
     serializer_class = StopTimeSerializer
-    lookup_url_kwarg = 'stoptime_id'
+    lookup_url_kwarg = 'stop_time_id'
 
 from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import D

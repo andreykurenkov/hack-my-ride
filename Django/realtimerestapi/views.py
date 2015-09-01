@@ -31,18 +31,21 @@ class TripRealTimeUpdatesAPIView(APIView):
     """
     Get realtime data about a stop
     """
-    def get(self, agency_name):
+    def get(self, request, agency_name, format=None):
         request = BASE_URL+'/StopMonitoring?api_key=%s&format=json&agency=%s%s'%(TOKEN,agency_name)
-        data = requests.get(request).data
+        data = requests.get(request).json()
         return Response(data)
 
 class StopRealTimeAPIView(APIView):
     """
     Get realtime data about a stop
     """
-    def get(self, stop_id):
-        agency_name = 'vta'
+    def get(self, request, stop_id, format=None):
+        stop = Stop.objects.get(id=stop_id)
+        code = str(stop.code)
+        agency_name = stop.stoptime_set.all()[0].trip.route.agency.name
         #TODO get agency_name from stop_id
-        request = BASE_URL+'/StopMonitoring?api_key=%s&format=json&agency=%s&stopid=%s'%(TOKEN,agency_name,stop_id)
-        data = requests.get(request).data
-        return Response(data)
+        request = BASE_URL+'/StopMonitoring?api_key=%s&format=json&agency=%s&stopCode=%s'%(TOKEN,agency_name,code)
+        response = requests.get(request)
+        response.encoding = "utf-8-sig"
+        return Response(response.json())
