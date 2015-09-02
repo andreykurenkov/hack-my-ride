@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from multigtfs.models import (
     Agency, Block, Fare, FareRule, Feed, Frequency, Route, Service, ServiceDate, Shape,
     ShapePoint, Stop, StopTime, Trip)
+from multigtfs.models.fields import Seconds
 from transitrestapi.serializers import *
 from django.http import Http404
 import abc 
@@ -117,6 +118,26 @@ class StopDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = StopSerializer
     lookup_url_kwarg = 'stop_id'
 
+class StopNextTimeAPIView(generics.RetrieveAPIView):
+    """
+    Retrieve next stop time relative to passed in time.
+    Time must be an int, which is the second 
+    TODO add number of results param
+    TODO have not figured out how to handle timezone well yet,
+    (not always stored in stop), so just passing in time
+    Can use lat,lon to get time zone and then get curr time, though.
+    """
+    model = StopTime
+    serializer_class = StopTimeSerializer
+
+    def get_object(self):
+        stop_id = self.kwargs['stop_id']
+        time = self.kwargs['time']
+        stop = Stop.objects.get(id=stop_id)
+        timecompare = Seconds(int(time))
+        stoptime = stop.stoptime_set.filter(arrival_time__gt=timecompare)[0]
+        return stoptime
+
 class StopTimesListAPIView(generics.ListAPIView):
     """
     Retrieve a list of stops times for a given stop
@@ -125,7 +146,7 @@ class StopTimesListAPIView(generics.ListAPIView):
     serializer_class = StopTimeSerializer
     
     def get_queryset(self):
-        agency_id = self.kwargs['stop_id']
+        stop_id = self.kwargs['stop_id']
         return StopTime.objects.filter(stop__id=stop_id)
 
 class StopTimeDetailAPIView(generics.RetrieveUpdateDestroyAPIView):

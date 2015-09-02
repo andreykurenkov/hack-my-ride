@@ -32,9 +32,11 @@ class TripRealTimeUpdatesAPIView(APIView):
     Get realtime data about a stop
     """
     def get(self, request, agency_name, format=None):
-        request = BASE_URL+'/StopMonitoring?api_key=%s&format=json&agency=%s%s'%(TOKEN,agency_name)
-        data = requests.get(request).json()
-        return Response(data)
+        request = BASE_URL+'/tripupdates?api_key=%s&agency=%s'%(TOKEN,agency_name)
+        data = requests.get(request).content
+        msg= gtfs_realtime_pb2.FeedMessage()
+        msg.ParseFromString(data)
+        return Response(str(msg))
 
 class StopRealTimeAPIView(APIView):
     """
