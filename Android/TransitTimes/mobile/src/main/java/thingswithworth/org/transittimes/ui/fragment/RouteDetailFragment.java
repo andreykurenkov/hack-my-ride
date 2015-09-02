@@ -7,13 +7,16 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.PolylineOptions;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -65,7 +68,23 @@ public class RouteDetailFragment extends Fragment implements OnMapReadyCallback
                         .title(s.getName())
                     );
                 }
+
+                LatLngBounds.Builder bounds = new LatLngBounds.Builder();
+                PolylineOptions routeOptions = new PolylineOptions();
+                for(double[][] d : mLoadedRoute.getGeometry().getCoordinates())
+                {
+                    for(int i=0; i<d.length; i++)
+                    {
+                        double[] point = d[i];
+                        LatLng coordinate = new LatLng(point[1], point[0]);
+                        routeOptions.add(coordinate);
+                        bounds.include(coordinate);
+                    }
+                }
+                mMap.addPolyline(routeOptions);
+                mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds.build(), 50));
             }
+
         }
     }
 }

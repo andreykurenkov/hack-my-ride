@@ -55,6 +55,7 @@ public class Route
     private RouteType route_type;
     @Expose(deserialize = false)
     private List<Stop> stops;
+    private Polyline geometry;
 
     public Route() {
     }
@@ -132,5 +133,13 @@ public class Route
 
     public void setStops(List<Stop> stops) {
         this.stops = stops;
+    }
+
+    public Polyline getGeometry() {
+        return geometry;
+    }
+
+    public void setGeometry(Polyline geometry) {
+        this.geometry = geometry;
     }
 }
