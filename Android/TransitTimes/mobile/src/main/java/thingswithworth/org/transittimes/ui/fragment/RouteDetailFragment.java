@@ -15,8 +15,11 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
+
+import java.util.HashMap;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -27,11 +30,21 @@ import thingswithworth.org.transittimes.model.Stop;
 /**
  * Created by Alex on 8/29/2015.
  */
-public class RouteDetailFragment extends Fragment implements OnMapReadyCallback
+public class RouteDetailFragment extends Fragment implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener
 {
     GoogleMap mMap;
 
     private Route mLoadedRoute;
+
+    private StopDetailFragment stopDetailFragment;
+
+    private HashMap<Marker, Stop> marker_to_stop;
+
+    public RouteDetailFragment()
+    {
+        stopDetailFragment = new StopDetailFragment();
+        marker_to_stop = new HashMap<>();
+    }
 
     @Nullable
     @Override
@@ -46,6 +59,13 @@ public class RouteDetailFragment extends Fragment implements OnMapReadyCallback
         ButterKnife.bind(this, view);
         SupportMapFragment fragment = (SupportMapFragment)getChildFragmentManager().findFragmentById(R.id.map);
         fragment.getMapAsync(this);
+
+        getChildFragmentManager().beginTransaction()
+                .add(R.id.container, stopDetailFragment)
+                .commit();
+
+
+
     }
 
     public void updateRoute(Route route)
@@ -56,17 +76,18 @@ public class RouteDetailFragment extends Fragment implements OnMapReadyCallback
     @Override
     public void onMapReady(GoogleMap googleMap)
     {
+        marker_to_stop.clear();
         mMap = googleMap;
+        mMap.setOnMarkerClickListener(this);
         if(mLoadedRoute!=null)
         {
             if(mLoadedRoute.getStops()!=null)
             {
                 for(Stop s: mLoadedRoute.getStops())
                 {
-                    mMap.addMarker(new MarkerOptions()
+                   marker_to_stop.put(mMap.addMarker(new MarkerOptions()
                         .position(new LatLng(s.getPoint().getCoordinates()[1], s.getPoint().getCoordinates()[0]))
-                        .title(s.getName())
-                    );
+                        .title(s.getName())), s);
                 }
 
                 LatLngBounds.Builder bounds = new LatLngBounds.Builder();
@@ -83,8 +104,19 @@ public class RouteDetailFragment extends Fragment implements OnMapReadyCallback
                 }
                 mMap.addPolyline(routeOptions);
                 mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds.build(), 50));
+
+                stopDetailFragment.updateStopAndRefresh(mLoadedRoute.getStops().get(0));
             }
 
         }
+    }
+
+    @Override
+    public boolean onMarkerClick(Marker marker)
+    {
+        marker.showInfoWindow();
+        Stop s = marker_to_stop.get(marker);
+        stopDetailFragment.updateStopAndRefresh(s);
+        return true;
     }
 }

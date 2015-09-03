@@ -35,6 +35,10 @@ public class RouteListFragment extends Fragment
     private TransitTimesRESTServices mTransitTimesService;
     private RouteAdapter mRouteAdapter;
 
+
+
+
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
