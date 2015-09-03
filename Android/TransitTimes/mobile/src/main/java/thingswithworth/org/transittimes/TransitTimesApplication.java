@@ -45,7 +45,6 @@ public class TransitTimesApplication  extends Application implements BootstrapNo
 
     public static BeaconManager getBeaconManager(){
         Log.d(TAG, "Called get for beacon "+beaconManager);
-
         return beaconManager;
     }
 
@@ -65,6 +64,7 @@ public class TransitTimesApplication  extends Application implements BootstrapNo
         // class will automatically cause the BeaconLibrary to save battery whenever the application
         // is not visible.  This reduces bluetooth power usage by about 60%
         backgroundPowerSaver = new BackgroundPowerSaver(this);
+        beaconManager.setForegroundBetweenScanPeriod(5);
 
         // If you wish to test beacon detection in the Android Emulator, you can use code like this:
         // BeaconManager.setBeaconSimulator(new TimedBeaconSimulator() );

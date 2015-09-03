@@ -13,7 +13,8 @@ import java.net.URL;
 public class BluetoothUtil {
 
     public static String getBeaconURL(Beacon beacon){
-        return UrlBeaconUrlCompressor.uncompress(beacon.getId1().toByteArray());
+        String url =UrlBeaconUrlCompressor.uncompress(beacon.getId1().toByteArray());
+        return url.substring(0,url.length()-5);
     }
 
     public static int getStopIdFromURL(String url){

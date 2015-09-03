@@ -51,14 +51,14 @@ public class RouteAdapter extends RecyclerView.Adapter<RouteAdapter.ViewHolder>
     private List<Route> mRouteList;
     private Context mContext;
     private Bus mBus;
-    private TransitTimesRESTServices mService;
+    private TransitTimesRESTServices mRESTService;
 
     public RouteAdapter(List<Route> items, Context context)
     {
         mRouteList = items;
         mContext = context;
         mBus = TransitTimesApplication.getBus();
-        mService = TransitTimesRESTServices.getInstance();
+        mRESTService = TransitTimesRESTServices.getInstance();
     }
 
     @Override
@@ -94,17 +94,17 @@ public class RouteAdapter extends RecyclerView.Adapter<RouteAdapter.ViewHolder>
                 Log.d("Retrofit","Getting Route");
 
                 Observable.zip(
-                    mService.routeService.getRoute(route.getId()),
-                    mService.routeService.getStops(route.getId()),
+                    mRESTService.routeService.getRoute(route.getId()),
+                    mRESTService.routeService.getStops(route.getId()),
                     (route_detail, stops) -> {
                         route_detail.setStops(stops);
                         return route_detail;
                     }
                 ).subscribe(
-                    (route_detail)->
-                        mBus.post(new OpenRouteRequest(route_detail, dialog)),
-                    (error)->
-                            Log.e("Retrofit", error.getMessage())
+                        (route_detail) ->
+                                mBus.post(new OpenRouteRequest(route_detail, dialog)),
+                        (error) ->
+                                Log.e("Retrofit", error.getMessage())
                 );
             }
         );

@@ -15,22 +15,32 @@ import org.altbeacon.beacon.Beacon;
 import org.altbeacon.beacon.BeaconConsumer;
 import org.altbeacon.beacon.RangeNotifier;
 import org.altbeacon.beacon.Region;
-import org.altbeacon.beacon.utils.UrlBeaconUrlCompressor;
 
+import java.util.Calendar;
 import java.util.Collection;
+import java.util.GregorianCalendar;
 
+import rx.Observable;
 import thingswithworth.org.transittimes.R;
 import thingswithworth.org.transittimes.TransitTimesApplication;
 import thingswithworth.org.transittimes.bluetooth.BluetoothUtil;
+import thingswithworth.org.transittimes.bluetooth.events.AtStopBeaconNotification;
 import thingswithworth.org.transittimes.bluetooth.events.NewBeaconSeen;
 import thingswithworth.org.transittimes.model.SharedPreferencesModel;
+import thingswithworth.org.transittimes.model.Stop;
+import thingswithworth.org.transittimes.model.StopTime;
+import thingswithworth.org.transittimes.net.events.OpenRouteRequest;
+import thingswithworth.org.transittimes.net.service.TransitTimesRESTServices;
 import thingswithworth.org.transittimes.ui.activity.MainActivity;
 
 /**
  * Created by andrey on 8/28/15.
  */
 public class BeaconMonitoringService extends Service implements BeaconConsumer {
+    private String TAG = "BeaconMonitoringService";
     private int mLastSeenId;
+    private TransitTimesRESTServices mRESTService;
+
     @Override
     public void onDestroy() {
         super.onDestroy();
@@ -47,6 +57,7 @@ public class BeaconMonitoringService extends Service implements BeaconConsumer {
         super.onCreate();
         mLastSeenId = SharedPreferencesModel.lastSeenStopBeaconId;
         TransitTimesApplication.getBeaconManager().bind(this);
+        mRESTService = TransitTimesRESTServices.getInstance();
     }
 
     @Override
@@ -61,7 +72,7 @@ public class BeaconMonitoringService extends Service implements BeaconConsumer {
                     if(id!=mLastSeenId) {
                         mLastSeenId = id;
                         SharedPreferencesModel.updateLastSeenBeacon(id);
-                        sendNotification(id);
+                        sendNotification(beacon,id);
                     }
                 }
             }
@@ -74,11 +85,26 @@ public class BeaconMonitoringService extends Service implements BeaconConsumer {
         }
     }
 
-    private void sendNotification(int id) {
+    private void sendNotification(Beacon beacon, int id) {
+        GregorianCalendar cal = new GregorianCalendar();
+        int currentSecond =cal.get(Calendar.SECOND);
+        int currentMinute =cal.get(Calendar.MINUTE);
+        int currentHour =cal.get(Calendar.HOUR);
+        int currentTotalSeconds = currentSecond + currentMinute*60 + currentHour*3600;
+        Observable<Stop> stopO = mRESTService.stopService.getStop(id);
+        Observable<StopTime>  stopTimeO =  mRESTService.stopService.getNextStopTimeAtStop(id, 10);
+        Stop stop = stopO.toBlocking().single();//Because YOLO
+        StopTime stop_time = stopTimeO.toBlocking().single();//Because YOLO
+        //TODO some of dat error handling
+        TransitTimesApplication.getBus().post(new AtStopBeaconNotification(beacon,stop,stop_time));
+        postNotification(stop, stop_time);
+    }
+
+    private void postNotification(Stop stop, StopTime nextTime){
         NotificationCompat.Builder mBuilder =
                 new NotificationCompat.Builder(this)
-                        .setContentTitle("Beacon Seen for stop")
-                        .setContentText("Predicted time of arrival ")
+                        .setContentTitle("At stop "+stop.getName())
+                        .setContentText("Next arrival time "+nextTime.getArrival_time().toString(false,false))
                         .setSmallIcon(R.mipmap.ic_launcher);
         // Creates an explicit intent for an Activity in your app
         Intent resultIntent = new Intent(this, MainActivity.class);
