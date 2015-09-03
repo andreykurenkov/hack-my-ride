@@ -3,6 +3,7 @@ from multigtfs.models import (
     Agency, Block, Fare, FareRule, Feed, Frequency, Route, Service, ServiceDate, Shape,
     ShapePoint, Stop, StopTime, Trip)
 
+
 class AgencySerializer(serializers.ModelSerializer):
     class Meta:
         model = Agency
@@ -39,7 +40,12 @@ class StopSerializer(serializers.ModelSerializer):
     class Meta:
         model = Stop
 
+class SecondsSerializer(serializers.Serializer):
+    seconds = serializers.IntegerField()
+
 class StopTimeSerializer(serializers.ModelSerializer):
+    arrival_time = SecondsSerializer()
+    departure_time = SecondsSerializer()
     class Meta:
         model = StopTime
 

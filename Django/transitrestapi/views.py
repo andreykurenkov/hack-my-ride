@@ -135,7 +135,7 @@ class StopNextTimeAPIView(generics.RetrieveAPIView):
         time = self.kwargs['time']
         stop = Stop.objects.get(id=stop_id)
         timecompare = Seconds(int(time))
-        stoptime = stop.stoptime_set.filter(arrival_time__gt=timecompare)[0]
+        stoptime = stop.stoptime_set.filter(arrival_time__gt=timecompare).order_by('arrival_time')[0]
         return stoptime
 
 class StopTimesListAPIView(generics.ListAPIView):
