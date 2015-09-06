@@ -27,6 +27,7 @@ import thingswithworth.org.transittimes.model.RouteTypeDeserializer;
 import thingswithworth.org.transittimes.net.interfaces.AgencyService;
 import thingswithworth.org.transittimes.net.interfaces.RouteService;
 import thingswithworth.org.transittimes.net.interfaces.StopService;
+import thingswithworth.org.transittimes.net.interfaces.TripService;
 
 /**
  * Created by Alex on 8/27/2015.
@@ -37,6 +38,7 @@ public class TransitTimesRESTServices
     private String TAG = "REST";
     public AgencyService agencyService;
     public RouteService routeService;
+    public TripService tripService;
     public StopService stopService;
 
     private static TransitTimesRESTServices service;
@@ -107,6 +109,7 @@ public class TransitTimesRESTServices
         agencyService = adapter.create(AgencyService.class);
         routeService = adapter.create(RouteService.class);
         stopService = adapter.create(StopService.class);
+        tripService = adapter.create(TripService.class);
     }
 
     private static final Interceptor mCacheControlInterceptor = new Interceptor() {

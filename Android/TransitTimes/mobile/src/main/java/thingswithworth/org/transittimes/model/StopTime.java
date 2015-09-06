@@ -16,6 +16,9 @@ public class StopTime {
     private String drop_of_type;
     private float shape_dist_traveled;
 
+    private Trip tripData;
+    private Stop stopData;
+
     public StopTime(int trip, int stop, SecondsTime arrival_time, SecondsTime departure_time,
                     int stop_sequence, String stop_headsign, String pickup_type, String drop_of_type,
                     float shape_dist_traveled) {
@@ -100,6 +103,22 @@ public class StopTime {
 
     public void setShape_dist_traveled(float shape_dist_traveled) {
         this.shape_dist_traveled = shape_dist_traveled;
+    }
+
+    public Trip getTripData() {
+        return tripData;
+    }
+
+    public void setTripData(Trip tripData) {
+        this.tripData = tripData;
+    }
+
+    public Stop getStopData() {
+        return stopData;
+    }
+
+    public void setStopData(Stop stopData) {
+        this.stopData = stopData;
     }
 
 
