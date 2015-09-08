@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block nav_home_active_class %} class="active"{% endblock %}
+{% block page_title %}TransitTimes - the source for the transit information you care about.{% endblock %}
+{% block page_top_content %}Select the Agency you would like to find info about.{% endblock %}
+{% block page_middle_content %}
+<div class="list-group">
+{% for agency in agencies %}
+  {% if forloop.first %}<ul>{% endif %}
+    <a href="{% url 'route_list' agency_id=agency.pk %}" class="list-group-item">{{ agency.name }}</a></li>
+  {% if forloop.last %}</ul>{% endif %}
+{% empty %}
+  <p><em>No agencies yet.</em></p>
+{% endfor %}
+</div>
+{% endblock %}
