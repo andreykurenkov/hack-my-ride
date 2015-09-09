@@ -29,6 +29,7 @@ import thingswithworth.org.transittimes.bluetooth.events.NewBeaconSeen;
 import thingswithworth.org.transittimes.net.events.LocationUpdateMessage;
 import thingswithworth.org.transittimes.net.events.OpenRouteRequest;
 import thingswithworth.org.transittimes.net.events.OpenStopRequest;
+import thingswithworth.org.transittimes.net.service.TransitTimesRESTServices;
 import thingswithworth.org.transittimes.ui.fragment.RouteDetailFragment;
 import thingswithworth.org.transittimes.ui.fragment.StopDetailFragment;
 import thingswithworth.org.transittimes.ui.fragment.TransitSystemFragment;
@@ -171,6 +172,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     public void onNewBeacon(NewBeaconSeen seenBeacon)
     {
         Log.d(TAG, "Bus event for ID " + seenBeacon.getStopId());
+        TransitTimesRESTServices.getInstance().stopService.getStop(seenBeacon.getStopId()).subscribe(systemFragment::updateBeaconStop);
     }
 
     @Override
