@@ -28,7 +28,9 @@ import thingswithworth.org.transittimes.bluetooth.BluetoothUtil;
 import thingswithworth.org.transittimes.bluetooth.events.NewBeaconSeen;
 import thingswithworth.org.transittimes.net.events.LocationUpdateMessage;
 import thingswithworth.org.transittimes.net.events.OpenRouteRequest;
+import thingswithworth.org.transittimes.net.events.OpenStopRequest;
 import thingswithworth.org.transittimes.ui.fragment.RouteDetailFragment;
+import thingswithworth.org.transittimes.ui.fragment.StopDetailFragment;
 import thingswithworth.org.transittimes.ui.fragment.TransitSystemFragment;
 import thingswithworth.org.transittimes.ui.menu.AppDrawer;
 
@@ -37,6 +39,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private static String TAG = "MainActivity";
     private TransitSystemFragment systemFragment;
     private RouteDetailFragment routeDetailFragment;
+    private StopDetailFragment stopDetailFragment;
     private GoogleApiClient mGoogleApiClient;
     private LocationRequest mLocationRequest;
     private boolean mRequestingLocationUpdates = false;
@@ -83,6 +86,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         if (savedInstanceState == null) {
             systemFragment = new TransitSystemFragment();
             routeDetailFragment = new RouteDetailFragment();
+            stopDetailFragment = new StopDetailFragment();
             getSupportFragmentManager().beginTransaction()
                     .add(R.id.container, systemFragment)
                     .commit();
@@ -141,6 +145,23 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             routeDetailFragment.updateRoute(openRouteRequest.getRoute());
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.container, routeDetailFragment)
+                    .addToBackStack("")
+                    .commit();
+        });
+    }
+    @Subscribe
+    public void onOpenStop(OpenStopRequest openStopRequest)
+    {
+        Log.d(TAG,"New OpenStopRequest seen: "+openStopRequest.getStop().getStop_id());
+
+        runOnUiThread(() -> {
+            if (openStopRequest.getDialog() != null) {
+                openStopRequest.getDialog().hide();
+            }
+
+            stopDetailFragment.updateStop(openStopRequest.getStop());
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.container, stopDetailFragment)
                     .addToBackStack("")
                     .commit();
         });

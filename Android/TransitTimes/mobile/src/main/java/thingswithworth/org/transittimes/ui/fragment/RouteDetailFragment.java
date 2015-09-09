@@ -64,8 +64,6 @@ public class RouteDetailFragment extends Fragment implements OnMapReadyCallback,
                 .add(R.id.container, stopDetailFragment)
                 .commit();
 
-
-
     }
 
     public void updateRoute(Route route)
@@ -104,7 +102,7 @@ public class RouteDetailFragment extends Fragment implements OnMapReadyCallback,
                 }
                 mMap.addPolyline(routeOptions);
                 mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds.build(), 50));
-
+                mMap.setMyLocationEnabled(true);
                 stopDetailFragment.updateStopAndRefresh(mLoadedRoute.getStops().get(0));
             }
 
