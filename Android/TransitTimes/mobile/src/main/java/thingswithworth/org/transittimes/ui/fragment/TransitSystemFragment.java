@@ -12,10 +12,12 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.astuetz.PagerSlidingTabStrip;
+import com.squareup.otto.Subscribe;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import thingswithworth.org.transittimes.R;
+import thingswithworth.org.transittimes.model.Stop;
 
 /**
  * Created by Alex on 8/23/2015.
@@ -58,6 +60,13 @@ public class TransitSystemFragment extends Fragment
         //menu inflation if necessary
     }
 
+    public void updateBeaconStop(Stop s)
+    {
+        getActivity().runOnUiThread(()->
+            mPagerAdapter.updateStop(s)
+        );
+    }
+
     private class TransitSystemPagerAdapter extends FragmentPagerAdapter
     {
         private final String[] TITLES = {"Browse", "Nearby", "Beacons"};
@@ -70,8 +79,8 @@ public class TransitSystemFragment extends Fragment
             super(fm);
             fragments = new Fragment[3];
             fragments[0] = new RouteListFragment();
-            fragments[1] = new Fragment();
-            fragments[2] = new Fragment();
+            fragments[1] = new StopListFragment();
+            fragments[2] = new StopDetailFragment();
         }
 
         @Override
@@ -87,6 +96,11 @@ public class TransitSystemFragment extends Fragment
         @Override
         public int getCount() {
             return fragments.length;
+        }
+
+        public void updateStop(Stop s)
+        {
+            ((StopDetailFragment)fragments[2]).updateStopAndRefresh(s);
         }
     }
 }

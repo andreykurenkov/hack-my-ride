@@ -11,6 +11,7 @@ import android.os.RemoteException;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.app.NotificationCompat.WearableExtender;
+import android.util.Log;
 
 import org.altbeacon.beacon.Beacon;
 import org.altbeacon.beacon.BeaconConsumer;
@@ -95,6 +96,7 @@ public class BeaconMonitoringService extends Service implements BeaconConsumer {
         int currentTotalSeconds = currentSecond + currentMinute*60 + currentHour*3600;
         Observable<Stop> stopO = mRESTService.stopService.getStop(id);
         Observable<List<StopTime>>  stopTimesO =  mRESTService.stopService.getNextStopTimesAtStop(id, currentTotalSeconds, 3);
+        Log.d(TAG,String.format("Looking for %d times after %d seconds",3,currentTotalSeconds));
         Stop stop = stopO.toBlocking().single();//Because YOLO
         List<StopTime> stop_times = stopTimesO.toBlocking().single();//Because YOLO
         for(StopTime stop_time: stop_times){
@@ -109,15 +111,22 @@ public class BeaconMonitoringService extends Service implements BeaconConsumer {
     }
 
     private void postNotification(Stop stop, List<StopTime> nextTimes){
-        String contentText = "";
-        for(StopTime stopTime:nextTimes){
-            contentText+="Stop "+stopTime.getArrival_time().toString(false,false)+" for "+stopTime.getTripData().getHeadsign()+"\n";
-        }
         NotificationCompat.Builder mBuilder =
-                new NotificationCompat.Builder(this)
-                        .setContentTitle("At "+stop.getName())
-                        .setContentText(contentText)
-                        .setSmallIcon(R.mipmap.ic_launcher);
+        new NotificationCompat.Builder(this)
+                .setContentTitle("At "+stop.getName())
+                .setContentText("Expand for info about "+nextTimes.size()+" upcoming stops")
+                .setSmallIcon(R.mipmap.ic_launcher);
+        NotificationCompat.InboxStyle inboxStyle =
+                new NotificationCompat.InboxStyle();
+        // Sets a title for the Inbox in expanded layout
+         // Moves events into the expanded layout
+        inboxStyle.setSummaryText("Click to go to app view.");
+        for(StopTime stopTime:nextTimes) {
+            String contentText="Stop "+stopTime.getArrival_time().toString(false,false)+" for "+stopTime.getTripData().getHeadsign()+"\n";
+            inboxStyle.addLine(contentText);
+        }
+        // Moves the expanded layout object into the notification object.
+        mBuilder.setStyle(inboxStyle);
         // Creates an explicit intent for an Activity in your app
         Intent resultIntent = new Intent(this, MainActivity.class);
 
@@ -138,6 +147,8 @@ public class BeaconMonitoringService extends Service implements BeaconConsumer {
         mBuilder.setContentIntent(resultPendingIntent);
         // mId allows you to update the notification later on.
         NotificationManagerCompat.from(this).notify(0, mBuilder.build());
+
+
     }
 
 
