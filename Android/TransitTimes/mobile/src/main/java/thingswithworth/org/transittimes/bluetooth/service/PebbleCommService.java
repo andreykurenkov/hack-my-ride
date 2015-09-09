@@ -1,4 +1,4 @@
-package thingswithworth.org.transittimes.bluetooth.pebble;
+package thingswithworth.org.transittimes.bluetooth.service;
 
 import android.app.Service;
 import android.content.BroadcastReceiver;
@@ -38,6 +38,8 @@ public class PebbleCommService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        Log.i(TAG, "Service running");
+
         PebbleKit.registerPebbleConnectedReceiver(getApplicationContext(), new BroadcastReceiver() {
 
             @Override
@@ -79,6 +81,8 @@ public class PebbleCommService extends Service {
     @Subscribe
     public void atStop(AtStopNotification atStopNotification)
     {
+        Log.i(TAG, "Sending Pebble info for stop "+atStopNotification.getStop().getName());
+
         PebbleKit.startAppOnPebble(getApplicationContext(), PEBBLE_APP_UUID);
         PebbleDictionary data = new PebbleDictionary();
 
