@@ -148,13 +148,12 @@ class StopNextTimesAPIView(generics.ListAPIView):
         stop_id = self.kwargs['stop_id']
         time = self.kwargs['time']
         num=1
-        if 'num' in self.kwargs:
-            num = self.kwargs['num']
+        if 'num' in self.request.query_params:
+            num = self.request.query_params['num']
         stop = Stop.objects.get(id=stop_id)
         if stop.stoptime_set.aggregate(Max('arrival_time'))<time:
             time = 0
         timecompare = Seconds(int(time))
-        stoptimes = stop.stoptime_set.filter(arrival_time__gt=timecompare).order_by('arrival_time')[0:num]
         stoptimes = stop.stoptime_set.filter(arrival_time__gt=timecompare).order_by('arrival_time')[0:num]
         return stoptimes
 
@@ -190,9 +189,9 @@ class NearestStopsListAPIView(generics.ListAPIView):
     serializer_class = StopSerializer
 
     def get_queryset(self):
-        lat = self.GET.get('lat')
-        lon = self.GET.get('lon')
-        limit = self.GET.get('limit')
+        lat = float(self.request.query_params.get('lat'))
+        lon = float(self.request.query_params.get('lon'))
+        limit = float(self.request.query_params.get('limit'))
         point = Point(lon,lat)
         stops = Stop.objects.filter(point__distance_lte=(point, D(mi=limit))
                                              ).distance(point).order_by('distance')
@@ -207,9 +206,9 @@ class NearestAgencyAPIView(generics.ListAPIView):
     serializer_class = StopSerializer
 
     def get_queryset(self):
-        lat = self.GET.get('lat')
-        lon = self.GET.get('lon')
-        limit = self.GET.get('limit')
+        lat = float(self.request.query_params.get('lat'))
+        lon = float(self.request.query_params.get('lon'))
+        limit = float(self.request.query_params.get('limit'))
         point = Point(lon,lat)
         stop = Stop.objects.filter(point__distance_lte=(point, D(mi=limit))
                                              ).distance(point).order_by('distance')[0]
