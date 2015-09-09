@@ -70,7 +70,7 @@ public class TransitSystemFragment extends Fragment
             super(fm);
             fragments = new Fragment[3];
             fragments[0] = new RouteListFragment();
-            fragments[1] = new Fragment();
+            fragments[1] = new StopListFragment();
             fragments[2] = new Fragment();
         }
 

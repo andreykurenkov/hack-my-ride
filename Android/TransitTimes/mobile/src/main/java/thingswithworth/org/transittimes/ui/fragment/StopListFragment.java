@@ -10,20 +10,26 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
 
+import com.squareup.otto.Subscribe;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import thingswithworth.org.transittimes.R;
+import thingswithworth.org.transittimes.TransitTimesApplication;
 import thingswithworth.org.transittimes.model.Route;
+import thingswithworth.org.transittimes.model.Stop;
+import thingswithworth.org.transittimes.net.events.LocationUpdateMessage;
 import thingswithworth.org.transittimes.net.service.TransitTimesRESTServices;
 import thingswithworth.org.transittimes.ui.adapters.RouteAdapter;
+import thingswithworth.org.transittimes.ui.adapters.StopAdapter;
 
 /**
- * Created by Alex on 8/27/2015.
+ * Created by Alex on 9/3/2015.
  */
-public class RouteListFragment extends Fragment
+public class StopListFragment extends Fragment
 {
     @Bind(R.id.genericListView)
     RecyclerView mRecyclerView;
@@ -31,13 +37,9 @@ public class RouteListFragment extends Fragment
     @Bind(R.id.loadingCircle)
     ProgressBar mLoadingCircle;
 
-    private List<Route> mRouteList;
+    private List<Stop> mStopList;
     private TransitTimesRESTServices mTransitTimesService;
-    private RouteAdapter mRouteAdapter;
-
-
-
-
+    private StopAdapter mStopAdapter;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -45,8 +47,9 @@ public class RouteListFragment extends Fragment
 
         if(savedInstanceState==null)
         {
-            mRouteList = new ArrayList<>();
+            mStopList = new ArrayList<>();
         }
+
     }
 
     @Nullable
@@ -60,19 +63,34 @@ public class RouteListFragment extends Fragment
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         ButterKnife.bind(this, view);
-        mRouteAdapter = new RouteAdapter(mRouteList, getActivity());
-        mRecyclerView.setAdapter(mRouteAdapter);
+        mStopAdapter = new StopAdapter(mStopList, getActivity());
+        mRecyclerView.setAdapter(mStopAdapter);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
-
         mTransitTimesService = TransitTimesRESTServices.getInstance();
-        mTransitTimesService.routeService.getRoutes(1).subscribe((routes)->
+
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        TransitTimesApplication.getBus().register(this);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        TransitTimesApplication.getBus().unregister(this);
+    }
+
+    @Subscribe
+    public void onLocation(LocationUpdateMessage locMessage)
+    {
+        mTransitTimesService.stopService.getNearestStops(locMessage.getLocation().getLatitude(), locMessage.getLocation().getLongitude(), 0.5).subscribe((stops)->
         {
-             mRouteList.clear();
-             mRouteList.addAll(routes);
-                getActivity().runOnUiThread(()->
-                mRouteAdapter.notifyDataSetChanged()
-            );
-        }
-        );
+            mStopList.clear();
+            mStopList.addAll(stops);
+            getActivity().runOnUiThread(()->
+                mStopAdapter.notifyDataSetChanged());
+        });
     }
 }

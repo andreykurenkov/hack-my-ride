@@ -1,5 +1,7 @@
 package thingswithworth.org.transittimes.ui.activity;
 
+import android.location.Location;
+
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -8,6 +10,10 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationListener;
 import com.mikepenz.materialdrawer.Drawer;
 import com.mikepenz.materialdrawer.model.PrimaryDrawerItem;
 import com.squareup.otto.Subscribe;
@@ -20,16 +26,20 @@ import thingswithworth.org.transittimes.R;
 import thingswithworth.org.transittimes.TransitTimesApplication;
 import thingswithworth.org.transittimes.bluetooth.BluetoothUtil;
 import thingswithworth.org.transittimes.bluetooth.events.NewBeaconSeen;
+import thingswithworth.org.transittimes.net.events.LocationUpdateMessage;
 import thingswithworth.org.transittimes.net.events.OpenRouteRequest;
 import thingswithworth.org.transittimes.ui.fragment.RouteDetailFragment;
 import thingswithworth.org.transittimes.ui.fragment.TransitSystemFragment;
 import thingswithworth.org.transittimes.ui.menu.AppDrawer;
 
 
-public class MainActivity extends AppCompatActivity  {
+public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, LocationListener {
     private static String TAG = "MainActivity";
     private TransitSystemFragment systemFragment;
     private RouteDetailFragment routeDetailFragment;
+    private GoogleApiClient mGoogleApiClient;
+    private LocationRequest mLocationRequest;
+    private boolean mRequestingLocationUpdates = false;
 
     @Bind(R.id.toolbar)
     Toolbar mToolbar;
@@ -77,6 +87,11 @@ public class MainActivity extends AppCompatActivity  {
                     .add(R.id.container, systemFragment)
                     .commit();
         }
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addApi(LocationServices.API)
+                .addConnectionCallbacks(this)
+                .build();
+        mGoogleApiClient.connect();
     }
 
 
@@ -100,11 +115,17 @@ public class MainActivity extends AppCompatActivity  {
     @Override
     public void onResume() {
         super.onResume();
+        if(mGoogleApiClient.isConnected() && !mRequestingLocationUpdates)
+        {
+            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
+        }
     }
 
     @Override
     public void onPause() {
         super.onPause();
+        LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
+        mRequestingLocationUpdates = false;
     }
 
     @Subscribe
@@ -112,7 +133,7 @@ public class MainActivity extends AppCompatActivity  {
     {
         Log.d(TAG,"New OpenRouteRequest seen: "+openRouteRequest.getRoute().getRoute_id());
 
-        runOnUiThread(()-> {
+        runOnUiThread(() -> {
             if (openRouteRequest.getDialog() != null) {
                 openRouteRequest.getDialog().hide();
             }
@@ -128,6 +149,40 @@ public class MainActivity extends AppCompatActivity  {
     @Subscribe
     public void onNewBeacon(NewBeaconSeen seenBeacon)
     {
-        Log.d(TAG,"Bus event for ID "+ seenBeacon.getStopId());
+        Log.d(TAG, "Bus event for ID " + seenBeacon.getStopId());
+    }
+
+    @Override
+    public void onConnected(Bundle bundle)
+    {
+        Location mLastKnownLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+        if(mLastKnownLocation!=null)
+        {
+            TransitTimesApplication.getBus().post(new LocationUpdateMessage(mLastKnownLocation));
+        }
+
+        mLocationRequest = new LocationRequest();
+        mLocationRequest.setInterval(60000);
+        mLocationRequest.setFastestInterval(30000);
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+
+        if(!mRequestingLocationUpdates)
+        {
+            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
+            mRequestingLocationUpdates = true;
+        }
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        if(location!=null)
+        {
+            TransitTimesApplication.getBus().post(new LocationUpdateMessage(location));
+        }
     }
 }

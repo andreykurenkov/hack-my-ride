@@ -26,4 +26,7 @@ public interface StopService {
     @GET("/api/stop/{stop_id}/stoptimesafter/{time}")
     public Observable<List<StopTime>> getNextStopTimesAtStop(@Path("stop_id") int stop_id,@Path("time") int time,@Query("num") int num);
 
+    @GET("/api/nearest")
+    public Observable<List<Stop>> getNearestStops(@Query("lat") double latitude, @Query("lon") double longitude, @Query("limit") double radius);
+
 }
