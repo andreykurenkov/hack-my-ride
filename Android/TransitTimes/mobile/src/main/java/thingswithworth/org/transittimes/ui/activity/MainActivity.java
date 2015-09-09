@@ -28,7 +28,6 @@ import thingswithworth.org.transittimes.ui.menu.AppDrawer;
 
 public class MainActivity extends AppCompatActivity  {
     private static String TAG = "MainActivity";
-    private BeaconManager mBeaconManager;
     private TransitSystemFragment systemFragment;
     private RouteDetailFragment routeDetailFragment;
 

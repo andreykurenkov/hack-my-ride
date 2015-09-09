@@ -44,6 +44,7 @@ INSTALLED_APPS = (
     'exploreapp',
     'transitrestapi',
     'realtimerestapi',
+    'transittimesbrowse',
 )
 
 POSTGIS_VERSION = (2, 1, 0)

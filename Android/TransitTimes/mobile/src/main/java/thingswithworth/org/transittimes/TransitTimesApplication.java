@@ -1,11 +1,14 @@
 package thingswithworth.org.transittimes;
 
 import android.app.Application;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
+import com.getpebble.android.kit.PebbleKit;
 import com.squareup.otto.Bus;
 import com.squareup.otto.ThreadEnforcer;
 
@@ -74,6 +77,27 @@ public class TransitTimesApplication  extends Application implements BootstrapNo
         TransitTimesRESTServices.init(this);
 
         SharedPreferencesModel.init(PreferenceManager.getDefaultSharedPreferences(this));
+
+        boolean connected = PebbleKit.isWatchConnected(getApplicationContext());
+        Log.i(TAG, "Pebble is " + (connected ? "connected" : "not connected"));
+
+        PebbleKit.registerPebbleConnectedReceiver(getApplicationContext(), new BroadcastReceiver() {
+
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                Log.i(TAG, "Pebble connected!");
+            }
+
+        });
+
+        PebbleKit.registerPebbleDisconnectedReceiver(getApplicationContext(), new BroadcastReceiver() {
+
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                Log.i(TAG, "Pebble disconnected!");
+            }
+
+        });
 
     }
 

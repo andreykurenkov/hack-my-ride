@@ -1,0 +1,38 @@
+{
+    "appKeys": {
+        "message": 1,
+        "status": 0
+    },
+    "capabilities": [
+        ""
+    ],
+    "companyName": "ThingsWithWorth",
+    "longName": "TransitTimes",
+    "projectType": "native",
+    "resources": {
+        "media": [
+            {
+                "file": "images/ic_launcher.png",
+                "name": "logo_b",
+                "type": "png"
+            },
+            {
+                "file": "images/ic_launcherm.png",
+                "menuIcon": true,
+                "name": "logo_s",
+                "type": "png"
+            }
+        ]
+    },
+    "sdkVersion": "3",
+    "shortName": "TransitTimes",
+    "targetPlatforms": [
+        "aplite",
+        "basalt"
+    ],
+    "uuid": "68932137-3a91-4205-bf0d-4a5fcebd88dc",
+    "versionLabel": "1.0",
+    "watchapp": {
+        "watchface": false
+    }
+}

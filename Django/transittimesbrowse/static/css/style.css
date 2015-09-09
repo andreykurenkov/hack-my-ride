@@ -1,0 +1,79 @@
+html{ 
+  height:100%;
+}
+
+body {
+  height:100%;
+}
+
+#wrap {
+ height: 100%;
+  /* equal to footer height */
+  margin-bottom: -25px; 
+
+}
+#wrap:after {
+  content: "";
+  display: block;
+}
+
+footer {
+    position: relative;
+    margin-top: -25px; /* negative value of footer height */
+    height: 25px;
+    clear:both;
+    text-align:center;
+}
+.navigation-wrapper {
+    /*padding: 2em 0 1em;*/
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+#logo{
+    margin: 0; 
+    height: auto;
+    width: 175px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+    
+nav ul { 
+    margin: 0;
+    padding-top: 1px; 
+    padding: 5px; /* Set margin and padding for cross browser consistency. */ 
+    list-style-type: none; /* Needed to eliminate list item marker */ 
+    text-align: center; /* Centers navigation bar */ 
+    background-color: #000; /* Set as desired */ 
+} 
+
+nav ul li { 
+    display: inline; /* Needed to create horizontal effect */ 
+}
+
+nav ul li a { 
+	text-decoration: none; /* The setting of "none" allows the link to not be underlined. This is up to user preference. */ 
+	padding: .2em 1em; /* Gives the link space inside it's individual block. */ 
+	color: #fff; /* Set as desired */ 
+	background-color: #000; /* Set as desired */ 
+}
+
+nav ul li a:hover { 
+	color: #000; 
+	background-color: #fff; /* Both of these values create the "Rollover effect, Set as desired */ 
+}  
+
+body {
+  padding-top: 0px;
+}
+
+.body-top {
+  padding: 40px 10px;
+  text-align: center;
+}
+
+a.list-group-item:hover{ 
+	color: #000; 
+	background-color: #fff; /* Both of these values create the "Rollover effect, Set as desired */ 
+}

@@ -2,22 +2,28 @@ package thingswithworth.org.transittimes.bluetooth.events;
 
 import org.altbeacon.beacon.Beacon;
 
+import java.util.List;
+
 import thingswithworth.org.transittimes.model.Stop;
 import thingswithworth.org.transittimes.model.StopTime;
+import thingswithworth.org.transittimes.model.Trip;
 
 /**
  * Created by andrey on 9/3/15.
  */
-public class AtStopBeaconNotification {
+public class AtStopNotification {
     private Beacon beacon;
     private Stop stop;
-    private StopTime nextTime;
+    private List<StopTime> nextTimes;
 
-    public AtStopBeaconNotification(Beacon beacon, Stop stop, StopTime nextTime) {
-
+    public AtStopNotification(Beacon beacon, Stop stop, List<StopTime> nextTimes) {
         this.beacon = beacon;
         this.stop = stop;
-        this.nextTime = nextTime;
+        this.nextTimes = nextTimes;
+    }
+
+    public AtStopNotification(Stop stop, List<StopTime> nextTimes) {
+        this(null,stop,nextTimes);
     }
 
     public Beacon getBeacon() {
@@ -36,12 +42,12 @@ public class AtStopBeaconNotification {
         this.stop = stop;
     }
 
-    public StopTime getNextTime() {
-        return nextTime;
+    public List<StopTime> getTimes() {
+        return nextTimes;
     }
 
-    public void setNextTime(StopTime nextTime) {
-        this.nextTime = nextTime;
+    public void setNextTime(List<StopTime> nextTimes) {
+        this.nextTimes = nextTimes;
     }
 
 }

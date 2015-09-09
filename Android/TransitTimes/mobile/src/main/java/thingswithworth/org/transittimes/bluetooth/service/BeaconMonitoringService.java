@@ -9,7 +9,8 @@ import android.content.Intent;
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.support.v4.app.NotificationCompat;
-import android.util.Log;
+import android.support.v4.app.NotificationManagerCompat;
+import android.support.v4.app.NotificationCompat.WearableExtender;
 
 import org.altbeacon.beacon.Beacon;
 import org.altbeacon.beacon.BeaconConsumer;
@@ -19,17 +20,18 @@ import org.altbeacon.beacon.Region;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.GregorianCalendar;
+import java.util.List;
 
 import rx.Observable;
 import thingswithworth.org.transittimes.R;
 import thingswithworth.org.transittimes.TransitTimesApplication;
 import thingswithworth.org.transittimes.bluetooth.BluetoothUtil;
-import thingswithworth.org.transittimes.bluetooth.events.AtStopBeaconNotification;
+import thingswithworth.org.transittimes.bluetooth.events.AtStopNotification;
 import thingswithworth.org.transittimes.bluetooth.events.NewBeaconSeen;
 import thingswithworth.org.transittimes.model.SharedPreferencesModel;
 import thingswithworth.org.transittimes.model.Stop;
 import thingswithworth.org.transittimes.model.StopTime;
-import thingswithworth.org.transittimes.net.events.OpenRouteRequest;
+import thingswithworth.org.transittimes.model.Trip;
 import thingswithworth.org.transittimes.net.service.TransitTimesRESTServices;
 import thingswithworth.org.transittimes.ui.activity.MainActivity;
 
@@ -72,7 +74,7 @@ public class BeaconMonitoringService extends Service implements BeaconConsumer {
                     if(id!=mLastSeenId) {
                         mLastSeenId = id;
                         SharedPreferencesModel.updateLastSeenBeacon(id);
-                        sendNotification(beacon,id);
+                        respondToNewStop(beacon,id);
                     }
                 }
             }
@@ -85,26 +87,36 @@ public class BeaconMonitoringService extends Service implements BeaconConsumer {
         }
     }
 
-    private void sendNotification(Beacon beacon, int id) {
+    private void respondToNewStop(Beacon beacon, int id) {
         GregorianCalendar cal = new GregorianCalendar();
         int currentSecond =cal.get(Calendar.SECOND);
         int currentMinute =cal.get(Calendar.MINUTE);
         int currentHour =cal.get(Calendar.HOUR);
         int currentTotalSeconds = currentSecond + currentMinute*60 + currentHour*3600;
         Observable<Stop> stopO = mRESTService.stopService.getStop(id);
-        Observable<StopTime>  stopTimeO =  mRESTService.stopService.getNextStopTimeAtStop(id, 10);
+        Observable<List<StopTime>>  stopTimesO =  mRESTService.stopService.getNextStopTimesAtStop(id, currentTotalSeconds, 3);
         Stop stop = stopO.toBlocking().single();//Because YOLO
-        StopTime stop_time = stopTimeO.toBlocking().single();//Because YOLO
-        //TODO some of dat error handling
-        TransitTimesApplication.getBus().post(new AtStopBeaconNotification(beacon,stop,stop_time));
-        postNotification(stop, stop_time);
+        List<StopTime> stop_times = stopTimesO.toBlocking().single();//Because YOLO
+        for(StopTime stop_time: stop_times){
+            Observable<Trip> tripO=  mRESTService.tripService.getTrip(stop_time.getTrip());
+            //this is not efficient and I DONT EVEN CARE
+            stop_time.setTripData(tripO.toBlocking().single());
+        }
+
+                //TODO some of dat error handling
+        TransitTimesApplication.getBus().post(new AtStopNotification(beacon,stop,stop_times));
+        postNotification(stop, stop_times);
     }
 
-    private void postNotification(Stop stop, StopTime nextTime){
+    private void postNotification(Stop stop, List<StopTime> nextTimes){
+        String contentText = "";
+        for(StopTime stopTime:nextTimes){
+            contentText+="Stop "+stopTime.getArrival_time().toString(false,false)+" for "+stopTime.getTripData().getHeadsign()+"\n";
+        }
         NotificationCompat.Builder mBuilder =
                 new NotificationCompat.Builder(this)
-                        .setContentTitle("At stop "+stop.getName())
-                        .setContentText("Next arrival time "+nextTime.getArrival_time().toString(false,false))
+                        .setContentTitle("At "+stop.getName())
+                        .setContentText(contentText)
                         .setSmallIcon(R.mipmap.ic_launcher);
         // Creates an explicit intent for an Activity in your app
         Intent resultIntent = new Intent(this, MainActivity.class);
@@ -124,10 +136,8 @@ public class BeaconMonitoringService extends Service implements BeaconConsumer {
                         PendingIntent.FLAG_UPDATE_CURRENT
                 );
         mBuilder.setContentIntent(resultPendingIntent);
-        NotificationManager mNotificationManager =
-                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         // mId allows you to update the notification later on.
-        mNotificationManager.notify(0, mBuilder.build());
+        NotificationManagerCompat.from(this).notify(0, mBuilder.build());
     }
 
 

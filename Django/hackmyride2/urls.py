@@ -12,7 +12,6 @@ urlpatterns = patterns('',
     url(r'^api/', include('transitrestapi.urls')),
     url(r'^api/', include('realtimerestapi.urls')),
     url(r'^api-doc/', include('rest_framework_swagger.urls')),
-    url(r'^$', TemplateView.as_view(template_name="explore/home.html"),
-        name='home'),
-    url(r'', include('exploreapp.urls'))
+    url(r'^$', 'transittimesbrowse.views.index',name='home'),
+    url(r'', include('transittimesbrowse.urls'))
 )

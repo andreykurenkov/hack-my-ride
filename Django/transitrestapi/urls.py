@@ -35,9 +35,9 @@ urlpatterns = patterns('',
 
     url(r'stop/(?P<stop_id>[^/]+)/times/?$',
         StopTimesListAPIView.as_view(), name='stop times'),
-    
-    url(r'stop/(?P<stop_id>[^/]+)/stoptimeafter/?(?P<time>[^/]+)$',
-        StopNextTimeAPIView.as_view(), name='stop time after'),
+
+    url(r'stop/(?P<stop_id>[^/]+)/stoptimesafter/?(?P<time>[^/]+)$',
+        StopNextTimesAPIView.as_view(), name='stop times after'),
     
     url(r'stop_time/(?P<stop_time_id>[^/]+)/?$',
         StopTimeDetailAPIView.as_view(), name='stop_time_detail'),

@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.db.models import Max
 from rest_framework import generics
 from rest_framework import status
 from rest_framework.views import APIView
@@ -118,25 +118,45 @@ class StopDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = StopSerializer
     lookup_url_kwarg = 'stop_id'
 
-class StopNextTimeAPIView(generics.RetrieveAPIView):
+class StopNextTimesAPIView(generics.ListAPIView):
     """
     Retrieve next stop time relative to passed in time.
     Time must be an int, which is the second 
-    TODO add number of results param
     TODO have not figured out how to handle timezone well yet,
     (not always stored in stop), so just passing in time
     Can use lat,lon to get time zone and then get curr time, though.
+    ---
+    parameters:
+        - name:stop_id
+        description: The id of the stop
+        required: true
+        type: int
+        - name: time
+        description: The integer number of seconds since the start of the day to get stop times after
+        required:true
+        type:int
+        - name: num
+        description: The number of stop times to get
+        required:false
+        type:int
+
     """
     model = StopTime
     serializer_class = StopTimeSerializer
 
-    def get_object(self):
+    def get_queryset(self):
         stop_id = self.kwargs['stop_id']
         time = self.kwargs['time']
+        num=1
+        if 'num' in self.kwargs:
+            num = self.kwargs['num']
         stop = Stop.objects.get(id=stop_id)
+        if stop.stoptime_set.aggregate(Max('arrival_time'))<time:
+            time = 0
         timecompare = Seconds(int(time))
-        stoptime = stop.stoptime_set.filter(arrival_time__gt=timecompare).order_by('arrival_time')[0]
-        return stoptime
+        stoptimes = stop.stoptime_set.filter(arrival_time__gt=timecompare).order_by('arrival_time')[0:num]
+        stoptimes = stop.stoptime_set.filter(arrival_time__gt=timecompare).order_by('arrival_time')[0:num]
+        return stoptimes
 
 class StopTimesListAPIView(generics.ListAPIView):
     """

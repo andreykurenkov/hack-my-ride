@@ -23,6 +23,11 @@ android {
     }
 }
 
+repositories {
+    mavenCentral()
+    maven { url "https://oss.sonatype.org/content/groups/public/" }
+}
+
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     wearApp project(':wear')
@@ -32,7 +37,7 @@ dependencies {
     compile 'com.google.android.gms:play-services:7.0.0'
     compile 'org.altbeacon:android-beacon-library:2+'
     compile 'io.reactivex:rxandroid:1.0.1'
-
+    compile 'com.getpebble:pebblekit:3.0.0'
     compile('com.mikepenz.materialdrawer:library:2.5.7@aar'){transitive=true}
 
     compile 'com.joanzapata.android:android-iconify:1.0.9'
