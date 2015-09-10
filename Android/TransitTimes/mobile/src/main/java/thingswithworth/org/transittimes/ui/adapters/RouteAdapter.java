@@ -8,12 +8,15 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Filter;
+import android.widget.Filterable;
 import android.widget.TextView;
 
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.joanzapata.android.iconify.Iconify;
 import com.squareup.otto.Bus;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.Bind;
@@ -28,8 +31,58 @@ import thingswithworth.org.transittimes.net.service.TransitTimesRESTServices;
 /**
  * Created by Alex on 8/27/2015.
  */
-public class RouteAdapter extends RecyclerView.Adapter<RouteAdapter.ViewHolder>
+public class RouteAdapter extends RecyclerView.Adapter<RouteAdapter.ViewHolder> implements Filterable
 {
+
+    @Override
+    public Filter getFilter() {
+        return new RouteFilter(this, mRouteList);
+    }
+
+    private static class RouteFilter extends Filter
+    {
+        private final RouteAdapter mRouteAdapter;
+        private final List<Route> originalList;
+        private final List<Route> filteredList;
+
+        private RouteFilter(RouteAdapter adapter, List<Route> list)
+        {
+            super();
+            mRouteAdapter = adapter;
+            originalList = list;
+            filteredList = new ArrayList<>();
+        }
+
+
+        @Override
+        protected FilterResults performFiltering(CharSequence constraint) {
+            filteredList.clear();
+            final FilterResults results = new FilterResults();
+            if (constraint.length() == 0) {
+                filteredList.addAll(originalList);
+            }
+            else
+            {
+                final String filterPattern = constraint.toString().toUpperCase().trim();
+                for(final Route route : originalList)
+                {
+                    if(route.getLong_name().contains(filterPattern))
+                        filteredList.add(route);
+                }
+            }
+            results.values = filteredList;
+            results.count = filteredList.size();
+            return results;
+        }
+
+        @Override
+        protected void publishResults(CharSequence charSequence, FilterResults filterResults)
+        {
+            mRouteAdapter.mFilteredRoutes.clear();
+            mRouteAdapter.mFilteredRoutes.addAll((List<Route>)filterResults.values);
+            mRouteAdapter.notifyDataSetChanged();
+        }
+    }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
 
@@ -49,6 +102,7 @@ public class RouteAdapter extends RecyclerView.Adapter<RouteAdapter.ViewHolder>
     }
 
     private List<Route> mRouteList;
+    private List<Route> mFilteredRoutes;
     private Context mContext;
     private Bus mBus;
     private TransitTimesRESTServices mRESTService;
@@ -59,6 +113,8 @@ public class RouteAdapter extends RecyclerView.Adapter<RouteAdapter.ViewHolder>
         mContext = context;
         mBus = TransitTimesApplication.getBus();
         mRESTService = TransitTimesRESTServices.getInstance();
+        mFilteredRoutes = new ArrayList<>();
+        mFilteredRoutes.addAll(items);
     }
 
     @Override
@@ -70,7 +126,7 @@ public class RouteAdapter extends RecyclerView.Adapter<RouteAdapter.ViewHolder>
     @Override
     public void onBindViewHolder(RouteAdapter.ViewHolder holder, int position)
     {
-        Route route = mRouteList.get(position);
+        Route route = mFilteredRoutes.get(position);
         holder.titleView.setText(route.getLong_name());
         holder.detailView.setText(route.getAgency().getName());
         if(route.getRoute_type()== Route.RouteType.BUS)
@@ -113,6 +169,6 @@ public class RouteAdapter extends RecyclerView.Adapter<RouteAdapter.ViewHolder>
 
     @Override
     public int getItemCount() {
-        return mRouteList.size();
+        return mFilteredRoutes.size();
     }
 }

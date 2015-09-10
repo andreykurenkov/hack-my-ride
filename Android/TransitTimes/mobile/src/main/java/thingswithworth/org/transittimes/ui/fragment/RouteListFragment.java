@@ -10,13 +10,17 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
 
+import com.squareup.otto.Subscribe;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import thingswithworth.org.transittimes.R;
+import thingswithworth.org.transittimes.TransitTimesApplication;
 import thingswithworth.org.transittimes.model.Route;
+import thingswithworth.org.transittimes.net.events.FilterMessage;
 import thingswithworth.org.transittimes.net.service.TransitTimesRESTServices;
 import thingswithworth.org.transittimes.ui.adapters.RouteAdapter;
 
@@ -34,10 +38,6 @@ public class RouteListFragment extends Fragment
     private List<Route> mRouteList;
     private TransitTimesRESTServices mTransitTimesService;
     private RouteAdapter mRouteAdapter;
-
-
-
-
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -74,5 +74,23 @@ public class RouteListFragment extends Fragment
             );
         }
         );
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        TransitTimesApplication.getBus().register(this);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        TransitTimesApplication.getBus().unregister(this);
+    }
+
+    @Subscribe
+    public void onFilter(FilterMessage fm)
+    {
+        mRouteAdapter.getFilter().filter(fm.getFilter());
     }
 }

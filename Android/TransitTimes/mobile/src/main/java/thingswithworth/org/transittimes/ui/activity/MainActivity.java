@@ -1,19 +1,24 @@
 package thingswithworth.org.transittimes.ui.activity;
 
+import android.content.Context;
 import android.location.Location;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationListener;
+import com.joanzapata.android.iconify.IconDrawable;
+import com.joanzapata.android.iconify.Iconify;
 import com.mikepenz.materialdrawer.Drawer;
 import com.mikepenz.materialdrawer.model.PrimaryDrawerItem;
 import com.squareup.otto.Subscribe;
@@ -26,6 +31,7 @@ import thingswithworth.org.transittimes.R;
 import thingswithworth.org.transittimes.TransitTimesApplication;
 import thingswithworth.org.transittimes.bluetooth.BluetoothUtil;
 import thingswithworth.org.transittimes.bluetooth.events.NewBeaconSeen;
+import thingswithworth.org.transittimes.net.events.FilterMessage;
 import thingswithworth.org.transittimes.net.events.LocationUpdateMessage;
 import thingswithworth.org.transittimes.net.events.OpenRouteRequest;
 import thingswithworth.org.transittimes.net.events.OpenStopRequest;
@@ -36,7 +42,7 @@ import thingswithworth.org.transittimes.ui.fragment.TransitSystemFragment;
 import thingswithworth.org.transittimes.ui.menu.AppDrawer;
 
 
-public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, LocationListener {
+public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, LocationListener, SearchView.OnQueryTextListener {
     private static String TAG = "MainActivity";
     private TransitSystemFragment systemFragment;
     private RouteDetailFragment routeDetailFragment;
@@ -104,6 +110,17 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
+
+        android.support.v7.widget.SearchView searchView = (android.support.v7.widget.SearchView)menu.findItem(R.id.search).getActionView();
+        menu.findItem(R.id.search).setIcon(
+                new IconDrawable(this, Iconify.IconValue.fa_search)
+                        .color(0xFFFFFF)
+                        .actionBarSize());
+        if(searchView!=null)
+        {
+            searchView.setOnQueryTextListener(this);
+        }
+
         return true;
     }
 
@@ -207,5 +224,24 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         {
             TransitTimesApplication.getBus().post(new LocationUpdateMessage(location));
         }
+    }
+
+    @Override
+    public boolean onQueryTextSubmit(String query) {
+        InputMethodManager inputManager =
+                (InputMethodManager)
+                        getSystemService(Context.INPUT_METHOD_SERVICE);
+        inputManager.hideSoftInputFromWindow(this.getCurrentFocus().getWindowToken(),0);
+        return true;
+    }
+
+    @Override
+    public boolean onQueryTextChange(String newText) {
+        if(newText!=null) {
+            TransitTimesApplication.getBus().post(new FilterMessage(newText));
+
+            return true;
+        }
+        return false;
     }
 }
