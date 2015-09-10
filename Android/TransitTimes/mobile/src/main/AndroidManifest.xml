@@ -27,6 +27,9 @@
         <service
             android:name=".bluetooth.service.BeaconMonitoringService"
             android:exported="false"/>
+        <service
+            android:name=".bluetooth.service.PebbleCommService"
+            android:exported="false"/>
         <activity
             android:name=".ui.activity.MainActivity"
             android:label="@string/app_name" >

@@ -20,6 +20,7 @@ import org.altbeacon.beacon.startup.BootstrapNotifier;
 import org.altbeacon.beacon.startup.RegionBootstrap;
 
 import thingswithworth.org.transittimes.bluetooth.service.BeaconMonitoringService;
+import thingswithworth.org.transittimes.bluetooth.service.PebbleCommService;
 import thingswithworth.org.transittimes.model.SharedPreferencesModel;
 import thingswithworth.org.transittimes.net.service.TransitTimesRESTServices;
 import thingswithworth.org.transittimes.ui.activity.MainActivity;
@@ -99,12 +100,13 @@ public class TransitTimesApplication  extends Application implements BootstrapNo
 
         });
 
+        startService(new Intent(getApplicationContext(), PebbleCommService.class));
     }
 
     @Override
     public void didEnterRegion(Region region) {
        Log.d(TAG, "Entered region.");
-        startService(new Intent(getApplicationContext(), BeaconMonitoringService.class));
+       startService(new Intent(getApplicationContext(), BeaconMonitoringService.class));
 
     }
 
