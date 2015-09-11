@@ -37,7 +37,7 @@ public class StopListFragment extends Fragment
     @Bind(R.id.loadingCircle)
     ProgressBar mLoadingCircle;
 
-    private List<Stop> mStopList;
+    protected List<Stop> mStopList;
     private TransitTimesRESTServices mTransitTimesService;
     private StopAdapter mStopAdapter;
 
@@ -92,5 +92,11 @@ public class StopListFragment extends Fragment
             getActivity().runOnUiThread(()->
                 mStopAdapter.notifyDataSetChanged());
         });
+    }
+
+    public void updateStops(List<Stop> stops)
+    {
+        mStopList.clear();
+        mStopList.addAll(stops);
     }
 }

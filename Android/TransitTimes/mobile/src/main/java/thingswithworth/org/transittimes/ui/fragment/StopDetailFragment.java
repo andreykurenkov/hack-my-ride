@@ -17,10 +17,13 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import java.util.List;
+
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import thingswithworth.org.transittimes.R;
 import thingswithworth.org.transittimes.model.Stop;
+import thingswithworth.org.transittimes.model.StopTime;
 
 /**
  * Created by Alex on 9/2/2015.
@@ -28,6 +31,7 @@ import thingswithworth.org.transittimes.model.Stop;
 public class StopDetailFragment extends Fragment implements OnMapReadyCallback
 {
     private Stop mCurrentStop;
+    private List<StopTime> mNextStopTimes;
 
     @Bind(R.id.titleView)
     TextView mTitleView;

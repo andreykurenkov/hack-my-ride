@@ -4,12 +4,20 @@
     tools:context=".MainActivity$TransitSystemFragment"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-
+    <android.support.v7.widget.Toolbar
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:theme="@style/ToolBarStyle"
+        android:background="@color/primaryColor"
+        android:id="@+id/toolbar"
+        android:elevation="4dp"
+        />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:orientation="vertical"
         android:layout_height="match_parent"
+        android:layout_below="@id/toolbar"
 
     >
 

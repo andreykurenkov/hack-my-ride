@@ -35,9 +35,6 @@ public class StopAdapter extends RecyclerView.Adapter<StopAdapter.ViewHolder>
         @Bind(R.id.titleView)
         TextView mTitleView;
 
-        @Bind(R.id.detailView)
-        TextView mDetailView;
-
         @Bind(R.id.card_view)
         CardView mContainer;
 
@@ -72,7 +69,6 @@ public class StopAdapter extends RecyclerView.Adapter<StopAdapter.ViewHolder>
     {
         Stop stop = mStopList.get(position);
         holder.mTitleView.setText(stop.getName());
-        holder.mDetailView.setText(stop.getDescription());
 
         holder.mContainer.setOnClickListener((v)->
                 {

@@ -47,6 +47,9 @@ public class RouteListFragment extends Fragment
         {
             mRouteList = new ArrayList<>();
         }
+
+        mTransitTimesService = TransitTimesRESTServices.getInstance();
+
     }
 
     @Nullable
@@ -64,16 +67,12 @@ public class RouteListFragment extends Fragment
         mRecyclerView.setAdapter(mRouteAdapter);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
 
-        mTransitTimesService = TransitTimesRESTServices.getInstance();
-        mTransitTimesService.routeService.getRoutes(1).subscribe((routes)->
-        {
-             mRouteList.clear();
-             mRouteList.addAll(routes);
-                getActivity().runOnUiThread(()->
-                mRouteAdapter.notifyDataSetChanged()
-            );
+        if(mRouteList.size()==0) {
+            updateAgency(1);
         }
-        );
+
+
+
     }
 
     @Override
@@ -92,5 +91,18 @@ public class RouteListFragment extends Fragment
     public void onFilter(FilterMessage fm)
     {
         mRouteAdapter.getFilter().filter(fm.getFilter());
+    }
+
+    public void updateAgency(int i)
+    {
+        mTransitTimesService = TransitTimesRESTServices.getInstance();
+        mTransitTimesService.routeService.getRoutes(i).subscribe((routes)->
+        {
+            mRouteAdapter.clear();
+            mRouteAdapter.addAll(routes);
+            getActivity().runOnUiThread(()->
+                            mRouteAdapter.notifyDataSetChanged()
+            );
+        });
     }
 }

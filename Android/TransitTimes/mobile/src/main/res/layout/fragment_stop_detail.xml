@@ -88,7 +88,7 @@
             </LinearLayout>
 
             <fragment xmlns:android="http://schemas.android.com/apk/res/android"
-                android:name="com.google.android.gms.maps.SupportMapFragment"
+                class="com.google.android.gms.maps.SupportMapFragment"
                 android:id="@+id/map"
                 android:layout_below="@id/scheduleContainer"
                 android:layout_width="match_parent"

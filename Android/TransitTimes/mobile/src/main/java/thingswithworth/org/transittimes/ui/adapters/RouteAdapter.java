@@ -17,6 +17,7 @@ import com.joanzapata.android.iconify.Iconify;
 import com.squareup.otto.Bus;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import butterknife.Bind;
@@ -121,6 +122,18 @@ public class RouteAdapter extends RecyclerView.Adapter<RouteAdapter.ViewHolder> 
     public RouteAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.listitem_route, parent, false);
         return new ViewHolder(v);
+    }
+
+    public void clear()
+    {
+        mRouteList.clear();
+        mFilteredRoutes.clear();
+    }
+
+    public void addAll(Collection<Route> collection)
+    {
+        mRouteList.addAll(collection);
+        mFilteredRoutes.addAll(mRouteList);
     }
 
     @Override

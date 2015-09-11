@@ -20,7 +20,10 @@ import com.google.android.gms.location.LocationListener;
 import com.joanzapata.android.iconify.IconDrawable;
 import com.joanzapata.android.iconify.Iconify;
 import com.mikepenz.materialdrawer.Drawer;
+import com.mikepenz.materialdrawer.accountswitcher.AccountHeader;
+import com.mikepenz.materialdrawer.model.DividerDrawerItem;
 import com.mikepenz.materialdrawer.model.PrimaryDrawerItem;
+import com.mikepenz.materialdrawer.model.SecondaryDrawerItem;
 import com.squareup.otto.Subscribe;
 
 import org.altbeacon.beacon.BeaconManager;
@@ -30,19 +33,22 @@ import butterknife.ButterKnife;
 import thingswithworth.org.transittimes.R;
 import thingswithworth.org.transittimes.TransitTimesApplication;
 import thingswithworth.org.transittimes.bluetooth.BluetoothUtil;
+import thingswithworth.org.transittimes.bluetooth.events.AtStopNotification;
 import thingswithworth.org.transittimes.bluetooth.events.NewBeaconSeen;
 import thingswithworth.org.transittimes.net.events.FilterMessage;
 import thingswithworth.org.transittimes.net.events.LocationUpdateMessage;
+import thingswithworth.org.transittimes.net.events.OpenPreferencesRequest;
 import thingswithworth.org.transittimes.net.events.OpenRouteRequest;
 import thingswithworth.org.transittimes.net.events.OpenStopRequest;
 import thingswithworth.org.transittimes.net.service.TransitTimesRESTServices;
 import thingswithworth.org.transittimes.ui.fragment.RouteDetailFragment;
 import thingswithworth.org.transittimes.ui.fragment.StopDetailFragment;
+import thingswithworth.org.transittimes.ui.fragment.TransitPreferenceFragment;
 import thingswithworth.org.transittimes.ui.fragment.TransitSystemFragment;
 import thingswithworth.org.transittimes.ui.menu.AppDrawer;
 
 
-public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, LocationListener, SearchView.OnQueryTextListener {
+public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, LocationListener {
     private static String TAG = "MainActivity";
     private TransitSystemFragment systemFragment;
     private RouteDetailFragment routeDetailFragment;
@@ -50,9 +56,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private GoogleApiClient mGoogleApiClient;
     private LocationRequest mLocationRequest;
     private boolean mRequestingLocationUpdates = false;
-
-    @Bind(R.id.toolbar)
-    Toolbar mToolbar;
+    private Drawer.Result drawer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,34 +66,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
         TransitTimesApplication.getBus().register(this);
 
-        mToolbar.setTitle("TransitTimes");
-        setSupportActionBar(mToolbar);
-
-        final Drawer.Result drawer = new AppDrawer().withActivity(this)
-                .withToolbar(mToolbar)
-                .addDrawerItems(
-                        new PrimaryDrawerItem().withName("VTA").withIdentifier(1),
-                        new PrimaryDrawerItem().withName("MARTA").withIdentifier(2)
-                )
-                .withOnDrawerListener(new Drawer.OnDrawerListener() {
-                    @Override
-                    public void onDrawerOpened(View view) {
-
-                    }
-
-                    @Override
-                    public void onDrawerClosed(View view) {
-
-                    }
-                })
-                .withOnDrawerItemClickListener(
-                        (adapterView, view, i, l, iDrawerItem) ->
-                        {
-
-                        }
-                )
-                .build();
-
         if (savedInstanceState == null) {
             systemFragment = new TransitSystemFragment();
             routeDetailFragment = new RouteDetailFragment();
@@ -98,6 +74,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                     .add(R.id.container, systemFragment)
                     .commit();
         }
+
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addApi(LocationServices.API)
                 .addConnectionCallbacks(this)
@@ -105,21 +82,9 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         mGoogleApiClient.connect();
     }
 
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-
-        android.support.v7.widget.SearchView searchView = (android.support.v7.widget.SearchView)menu.findItem(R.id.search).getActionView();
-        menu.findItem(R.id.search).setIcon(
-                new IconDrawable(this, Iconify.IconValue.fa_search)
-                        .color(0xFFFFFF)
-                        .actionBarSize());
-        if(searchView!=null)
-        {
-            searchView.setOnQueryTextListener(this);
-        }
 
         return true;
     }
@@ -141,6 +106,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         {
             LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
         }
+
     }
 
     @Override
@@ -154,7 +120,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     public void onOpenRoute(OpenRouteRequest openRouteRequest)
     {
         Log.d(TAG,"New OpenRouteRequest seen: "+openRouteRequest.getRoute().getRoute_id());
-
         runOnUiThread(() -> {
             if (openRouteRequest.getDialog() != null) {
                 openRouteRequest.getDialog().hide();
@@ -171,7 +136,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     public void onOpenStop(OpenStopRequest openStopRequest)
     {
         Log.d(TAG,"New OpenStopRequest seen: "+openStopRequest.getStop().getStop_id());
-
         runOnUiThread(() -> {
             if (openStopRequest.getDialog() != null) {
                 openStopRequest.getDialog().hide();
@@ -186,10 +150,22 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     }
 
     @Subscribe
-    public void onNewBeacon(NewBeaconSeen seenBeacon)
+    public void onOpenPreference(OpenPreferencesRequest request)
     {
-        Log.d(TAG, "Bus event for ID " + seenBeacon.getStopId());
-        TransitTimesRESTServices.getInstance().stopService.getStop(seenBeacon.getStopId()).subscribe(systemFragment::updateBeaconStop);
+        runOnUiThread(() -> {
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.container, new TransitPreferenceFragment())
+                    .addToBackStack("")
+                    .commit();
+        });
+    }
+
+    @Subscribe
+    public void onNewBeacon(AtStopNotification stopNotification)
+    {
+        Log.d(TAG, "Bus event for ID " + stopNotification.getStop().getStop_id());
+        systemFragment.updateBeaconStop(stopNotification.getStop());
+
     }
 
     @Override
@@ -226,22 +202,5 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         }
     }
 
-    @Override
-    public boolean onQueryTextSubmit(String query) {
-        InputMethodManager inputManager =
-                (InputMethodManager)
-                        getSystemService(Context.INPUT_METHOD_SERVICE);
-        inputManager.hideSoftInputFromWindow(this.getCurrentFocus().getWindowToken(),0);
-        return true;
-    }
 
-    @Override
-    public boolean onQueryTextChange(String newText) {
-        if(newText!=null) {
-            TransitTimesApplication.getBus().post(new FilterMessage(newText));
-
-            return true;
-        }
-        return false;
-    }
 }
