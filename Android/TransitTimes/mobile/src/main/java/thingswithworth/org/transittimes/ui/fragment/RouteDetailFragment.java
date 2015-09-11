@@ -81,26 +81,32 @@ public class RouteDetailFragment extends Fragment implements OnMapReadyCallback,
         {
             if(mLoadedRoute.getStops()!=null)
             {
+                LatLngBounds.Builder bounds = new LatLngBounds.Builder();
                 for(Stop s: mLoadedRoute.getStops())
                 {
+                    LatLng coordinate = new LatLng(s.getPoint().getCoordinates()[1], s.getPoint().getCoordinates()[0]);
                    marker_to_stop.put(mMap.addMarker(new MarkerOptions()
-                        .position(new LatLng(s.getPoint().getCoordinates()[1], s.getPoint().getCoordinates()[0]))
+                        .position(coordinate)
                         .title(s.getName())), s);
+
+                    bounds.include(coordinate);
                 }
 
-                LatLngBounds.Builder bounds = new LatLngBounds.Builder();
+
                 PolylineOptions routeOptions = new PolylineOptions();
-                for(double[][] d : mLoadedRoute.getGeometry().getCoordinates())
-                {
-                    for(int i=0; i<d.length; i++)
-                    {
-                        double[] point = d[i];
-                        LatLng coordinate = new LatLng(point[1], point[0]);
-                        routeOptions.add(coordinate);
-                        bounds.include(coordinate);
+                if(mLoadedRoute.getGeometry()!=null) {
+                    for (double[][] d : mLoadedRoute.getGeometry().getCoordinates()) {
+                        for (int i = 0; i < d.length; i++) {
+                            double[] point = d[i];
+                            LatLng coordinate = new LatLng(point[1], point[0]);
+                            routeOptions.add(coordinate);
+                            bounds.include(coordinate);
+                        }
                     }
+                    mMap.addPolyline(routeOptions);
+
+
                 }
-                mMap.addPolyline(routeOptions);
                 mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds.build(), 50));
                 mMap.setMyLocationEnabled(true);
                 stopDetailFragment.updateStopAndRefresh(mLoadedRoute.getStops().get(0));
