@@ -1,0 +1,7 @@
+{% for route in routes %}
+  {% if forloop.first %}<ul>{% endif %}
+    <a href="{% url 'route_detail' route_id=route.pk %}" class="list-group-item">{{ route.long_name }}</a></li>
+  {% if forloop.last %}</ul>{% endif %}
+{% empty %}
+  <p><em>No routes matching that input.</em></p>
+{% endfor %}

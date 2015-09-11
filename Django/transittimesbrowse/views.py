@@ -6,15 +6,25 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 
 def index(request):
-    agencies = Agency.objects.all()
-    return render_to_response('index.html', context_instance=RequestContext(request,{'agencies':agencies}))
+    agencies = Agency.objects.all().order_by('name')
+    template = 'index.html'
+    if request.is_ajax():
+        template = 'agency_list.html'
+        search_text = request.GET['search']
+        agencies = agencies.filter(name__icontains=search_text)
+    context_instance=RequestContext(request,{'agencies':agencies})
+    return render_to_response(template, context_instance)
 
-def route_list(request,agency_name):
-    routes = Route.objects.all().filter(agency__name=agency_name) 
-    agency = Agency.objects.all().get(name=agency_name)
-    return render_to_response('route_list.html', context_instance=RequestContext(request,{'agency':agency,
-                                                                                          'routes':routes}))
-
+def routes(request,agency_id):
+    template = 'routes_page.html'
+    routes = Route.objects.all().filter(agency__agency_id=agency_id).order_by('long_name')
+    agency = Agency.objects.all().get(agency_id=agency_id)
+    if request.is_ajax():
+        template = 'routes_list.html'
+        search_text = request.GET['search']
+        routes = routes.filter(long_name__icontains=search_text)
+    context_instance=RequestContext(request,{'agency':agency,'routes':routes})
+    return render_to_response(template, context_instance)
 
 class ByAgencyListView(ListView):
     by_col = 'agency__name'

@@ -1,14 +1,14 @@
 {% extends "base.html" %}
 {% load staticfiles %}
 {% block nav_home_active_class %} class="active"{% endblock %}
-{% block page_title %}TransitTimes Home{% endblock %}
-{% block page_top_content %}Select the Agency you would like to find info about.{% endblock %}
+{% block page_title %}Routes for {{agency.name}}{% endblock %}
+{% block page_top_content %}Select the route of {{agency.name}} you would like to find info about.{% endblock %}
 {% block page_middle_content %}
 <div class="form-group">
-    <textarea placeholder="You can search for an agency name here" class="form-control" rows="1" id="text_search"></textarea>
+    <textarea placeholder="You can search for a route name here" class="form-control" rows="1" id="text_search"></textarea>
 </div>
 <div class="list-group" id="list">
-    {% include "agency_list.html" %}
+    {% include "routes_list.html" %}
 </div>
 {% endblock %}
 {% block body_script %}<script type="text/javascript" src="{% static "js/updatelist.js" %}"></script>{% endblock %}

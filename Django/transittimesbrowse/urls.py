@@ -12,7 +12,7 @@ from transittimesbrowse.views import (
     TripByShapeListView)
 
 urlpatterns = patterns('',
-    url(r'(?P<agency_name>.+)/routes/$', 'transittimesbrowse.views.route_list', name='route_list'),
+    url(r'(?P<agency_id>.+)/routes/$', 'transittimesbrowse.views.routes', name='routes'),
     url(r'feed/(?P<pk>\d+)/$', DetailView.as_view(model=Feed),
         name='feed_detail'),
     url(r'feed/(?P<feed_id>\d+)/agency/(?P<pk>\d+)/$',
