@@ -26,7 +26,7 @@ public class SecondsTime {
         int hours = seconds/3600;
         int minutes = (seconds%3600)/60;
         int sec = seconds % 60;
-        return String.format("%d:%d:%d",hours,minutes,sec);
+        return String.format("%d:%02d:%02d",hours,minutes,sec);
     }
 
     public String toString(boolean includeSeconds,boolean verbose){
@@ -47,9 +47,9 @@ public class SecondsTime {
         }
 
         if(includeSeconds)
-            return String.format("%d:%d:%d",hours,minutes,sec);
+            return String.format("%d:%02d:%02d",hours,minutes,sec);
         else
-            return String.format("%d:%d",hours,minutes);
+            return String.format("%d:%02d",hours,minutes);
     }
 
     public SecondsTime difference(SecondsTime other){

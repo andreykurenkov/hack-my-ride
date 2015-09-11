@@ -1,6 +1,7 @@
 package thingswithworth.org.transittimes.ui.activity;
 
 import android.content.Context;
+import android.content.pm.ActivityInfo;
 import android.location.Location;
 
 import android.os.Bundle;
@@ -62,6 +63,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+
         ButterKnife.bind(this);
 
         TransitTimesApplication.getBus().register(this);
