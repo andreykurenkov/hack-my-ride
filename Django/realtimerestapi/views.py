@@ -11,6 +11,7 @@ from django.http import Http404
 import abc 
 import gtfs_realtime_pb2
 import requests
+import protobuf_json
 TOKEN = '10ee313e-23bb-4991-85f7-0bf6d6544bff'
 BASE_URL = 'http://api.511.org/transit'
 
@@ -27,7 +28,7 @@ def get_trip_updates(agency_name):
     except:
         return None
 
-class TripRealTimeUpdatesAPIView(APIView):
+class TripsRealTimeUpdatesAPIView(APIView):
     """
     Get realtime data about a stop
     """
@@ -36,7 +37,42 @@ class TripRealTimeUpdatesAPIView(APIView):
         data = requests.get(request).content
         msg= gtfs_realtime_pb2.FeedMessage()
         msg.ParseFromString(data)
-        return Response(str(msg))
+        return Response(protobuf_json.pb2json(msg))
+
+class TripRealTimeUpdatesAPIView(APIView):
+    """
+    Get realtime data about a stop
+    """
+    def get(self, request, trip_id, format=None):
+        trip = Trip.objects.all().get(pk=trip_id)
+        agency = trip.route.agency
+        request = BASE_URL+'/tripupdates?api_key=%s&agency=%s'%(TOKEN,agency.name)
+        data = requests.get(request).content
+        msg= gtfs_realtime_pb2.FeedMessage()
+        msg.ParseFromString(data)
+        json = protobuf_json.pb2json(msg)['entity']
+        json_route = filter(lambda obj: obj['trip_update']['trip']['trip_id']==trip.trip_id,json)[0]
+        return Response(json_route)
+
+class StopRealTimeUpdatesAPIView(APIView):
+    """
+    Get realtime data about a stop
+    """
+    def get(self, request, stop_time_id, format=None):
+        stop_time = StopTime.objects.all().get(pk=stop_time_id)
+        stop = stop_time.stop
+        trip = stop_time.trip
+        agency = trip.route.agency
+        request = BASE_URL+'/tripupdates?api_key=%s&agency=%s'%(TOKEN,agency.name)
+        data = requests.get(request).content
+        msg= gtfs_realtime_pb2.FeedMessage()
+        msg.ParseFromString(data)
+        json = protobuf_json.pb2json(msg)['entity']
+        for obs in json:
+            for stop_time_update in obs['trip_update']['stop_time_update']:
+                if stop_time_update['stop_id']==stop.code:
+                    return Response(stop_time_update)
+        return Response('')
 
 class StopRealTimeAPIView(APIView):
     """

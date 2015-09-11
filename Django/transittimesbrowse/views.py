@@ -9,9 +9,16 @@ def index(request):
     agencies = Agency.objects.all()
     return render_to_response('index.html', context_instance=RequestContext(request,{'agencies':agencies}))
 
+def route_list(request,agency_name):
+    routes = Route.objects.all().filter(agency__name=agency_name) 
+    agency = Agency.objects.all().get(name=agency_name)
+    return render_to_response('route_list.html', context_instance=RequestContext(request,{'agency':agency,
+                                                                                          'routes':routes}))
+
+
 class ByAgencyListView(ListView):
-    by_col = 'agency_id'
-    by_kwarg = 'agency_id'
+    by_col = 'agency__name'
+    by_kwarg = 'agency_name'
     by_class = Agency
     by_classname = 'agency'
 
@@ -19,8 +26,8 @@ class ByAgencyListView(ListView):
         context = super(ByAgencyListView, self).get_context_data(
             **kwargs)
         context[self.by_classname] = self.by_class.objects.get(
-            id=self.kwargs[self.by_kwarg])
-        context['agency_id'] = self.kwargs['agency_id']
+            name=self.kwargs[self.by_kwarg])
+        context['agency_name'] = self.kwargs['agency_name']
         return context
 
     def get_queryset(self, **kwargs):

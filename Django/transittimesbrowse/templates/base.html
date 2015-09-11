@@ -18,7 +18,7 @@
   </head>
   {% load staticfiles %}
   <body>
-    <div id="wrap">
+    <div id="wrap"><div id="main">
         <div class="navigation-wrapper">
             <div class="top-navigation">
                 <nav role="navigation" id="site-nav" class="nav">
@@ -52,7 +52,7 @@
       -->
       <div class="container">
 	<div class="body-top">
-	  <h1>{% block page_title %}TODO: set page_title{% endblock %}</h1>
+	  <h2>{% block page_title %}TODO: set page_title{% endblock %}</h2>
 	  {% block page_top_content_elem %}
 	  <p class="lead">
 	      {% block page_top_content %}TODO: set page_top_content{% endblock %}
@@ -61,7 +61,7 @@
 	</div>
 	<div class="body-middle">{% block page_middle_content %}{% endblock %}</div>
       </div>
-    </div>
+    </div></div>
 
     <footer>
         <span>
