@@ -6,7 +6,7 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 
 def index(request):
-    agencies = Agency.objects.all().order_by('name')
+    agencies = Agency.objects.order_by('name')
     template = 'index.html'
     if request.is_ajax():
         template = 'agency_list.html'
@@ -17,178 +17,32 @@ def index(request):
 
 def routes(request,agency_id):
     template = 'routes_page.html'
-    routes = Route.objects.all().filter(agency__agency_id=agency_id).order_by('long_name')
+    routes = Route.objects.filter(agency__agency_id=agency_id).order_by('long_name')
     agency = Agency.objects.all().get(agency_id=agency_id)
+    longest_geom = None
     if request.is_ajax():
         template = 'routes_list.html'
         search_text = request.GET['search']
         routes = routes.filter(long_name__icontains=search_text)
-    context_instance=RequestContext(request,{'agency':agency,'routes':routes})
+    else:
+        for route in routes:
+            if route.geometry!=None and (longest_geom==None or len(route.geometry)>len(longest_geom)):
+                longest_geom = route.geometry
+
+    context_instance=RequestContext(request,{'agency':agency,'routes':routes,'geom':longest_geom})
     return render_to_response(template, context_instance)
 
-class ByAgencyListView(ListView):
-    by_col = 'agency__name'
-    by_kwarg = 'agency_name'
-    by_class = Agency
-    by_classname = 'agency'
+def stops(request,agency_id,route_id):
+    template = 'stops_page.html'
+    agency = Agency.objects.get(agency_id=agency_id)
+    route = Route.objects.get(route_id=route_id,agency__pk=agency.pk)
+    trip_ids = Trip.objects.filter(route__id = route_id).values_list("id")
+    stop_ids =  StopTime.objects.filter(trip__id__in=trip_ids).values_list("stop__id")
+    stops = Stop.objects.filter(id__in=stop_ids).distinct().order_by('name')
+    if request.is_ajax():
+        template = 'stops_list.html'
+        search_text = request.GET['search']
+        stops = stops.filter(name__icontains=search_text)
+    context_instance=RequestContext(request,{'agency':agency,'route':route,'stops':stops})
+    return render_to_response(template, context_instance)
 
-    def get_context_data(self, **kwargs):
-        context = super(ByAgencyListView, self).get_context_data(
-            **kwargs)
-        context[self.by_classname] = self.by_class.objects.get(
-            name=self.kwargs[self.by_kwarg])
-        context['agency_name'] = self.kwargs['agency_name']
-        return context
-
-    def get_queryset(self, **kwargs):
-        q_filter = {self.by_col: self.kwargs[self.by_kwarg]}
-        qset = super(ByAgencyListView, self).get_queryset(**kwargs)
-        return qset.filter(**q_filter)
-
-
-class FareRuleByFareListView(ListView):
-    model = FareRule
-
-    def get_context_data(self, **kwargs):
-        context = super(FareRuleByFareListView, self).get_context_data(
-            **kwargs)
-        context['fare'] = Fare.objects.get(id=self.kwargs['fare_id'])
-        context['feed_id'] = self.kwargs['feed_id']
-        return context
-
-    def get_queryset(self, **kwargs):
-        return FareRule.objects.filter(fare_id=self.kwargs['fare_id'])
-
-
-class FareRuleByRouteListView(ListView):
-    model = FareRule
-
-    def get_context_data(self, **kwargs):
-        context = super(FareRuleByRouteListView, self).get_context_data(
-            **kwargs)
-        context['route'] = Route.objects.get(id=self.kwargs['route_id'])
-        context['feed_id'] = self.kwargs['feed_id']
-        return context
-
-    def get_queryset(self, **kwargs):
-        return FareRule.objects.filter(route_id=self.kwargs['route_id'])
-
-
-class FrequencyByTripListView(ListView):
-    model = Frequency
-
-    def get_context_data(self, **kwargs):
-        context = super(FrequencyByTripListView, self).get_context_data(
-            **kwargs)
-        context['trip'] = Trip.objects.get(id=self.kwargs['trip_id'])
-        return context
-
-    def get_queryset(self, **kwargs):
-        return Frequency.objects.filter(trip=self.kwargs['trip_id'])
-
-
-class ServiceDateByServiceListView(ListView):
-    model = ServiceDate
-
-    def get_context_data(self, **kwargs):
-        context = super(ServiceDateByServiceListView, self).get_context_data(
-            **kwargs)
-        context['service'] = Service.objects.get(id=self.kwargs['service_id'])
-        return context
-
-    def get_queryset(self, **kwargs):
-        return ServiceDate.objects.filter(service=self.kwargs['service_id'])
-
-
-class ShapePointByShapeListView(ListView):
-    model = ShapePoint
-
-    def get_context_data(self, **kwargs):
-        context = super(ShapePointByShapeListView, self).get_context_data(
-            **kwargs)
-        context['shape'] = Shape.objects.get(id=self.kwargs['shape_id'])
-        context['feed_id'] = self.kwargs['feed_id']
-        return context
-
-    def get_queryset(self, **kwargs):
-        return ShapePoint.objects.filter(shape=self.kwargs['shape_id'])
-
-
-class StopTimeByStopListView(ListView):
-    model = StopTime
-
-    def get_context_data(self, **kwargs):
-        context = super(StopTimeByStopListView, self).get_context_data(
-            **kwargs)
-        context['stop'] = Stop.objects.get(id=self.kwargs['stop_id'])
-        context['feed_id'] = self.kwargs['feed_id']
-        return context
-
-    def get_queryset(self, **kwargs):
-        return StopTime.objects.filter(stop_id=self.kwargs['stop_id'])
-
-
-class StopTimeByTripListView(ListView):
-    model = StopTime
-
-    def get_context_data(self, **kwargs):
-        context = super(StopTimeByTripListView, self).get_context_data(
-            **kwargs)
-        context['trip'] = Trip.objects.get(id=self.kwargs['trip_id'])
-        context['feed_id'] = self.kwargs['feed_id']
-        return context
-
-    def get_queryset(self, **kwargs):
-        return StopTime.objects.filter(trip=self.kwargs['trip_id'])
-
-
-class TripByBlockListView(ListView):
-    model = Trip
-
-    def get_context_data(self, **kwargs):
-        context = super(TripByBlockListView, self).get_context_data(**kwargs)
-        context['the_block'] = Block.objects.get(id=self.kwargs['block_id'])
-        context['feed_id'] = self.kwargs['feed_id']
-        return context
-
-    def get_queryset(self, **kwargs):
-        return Trip.objects.filter(block_id=self.kwargs['block_id'])
-
-
-class TripByRouteListView(ListView):
-    model = Trip
-
-    def get_context_data(self, **kwargs):
-        context = super(TripByRouteListView, self).get_context_data(**kwargs)
-        context['route'] = Route.objects.get(id=self.kwargs['route_id'])
-        context['feed_id'] = self.kwargs['feed_id']
-        return context
-
-    def get_queryset(self, **kwargs):
-        return Trip.objects.filter(route_id=self.kwargs['route_id'])
-
-
-class TripByServiceListView(ListView):
-    model = Trip
-
-    def get_context_data(self, **kwargs):
-        context = super(TripByServiceListView, self).get_context_data(**kwargs)
-        context['service'] = Service.objects.get(id=self.kwargs['service_id'])
-        context['feed_id'] = self.kwargs['feed_id']
-        return context
-
-    def get_queryset(self, **kwargs):
-        return Trip.objects.filter(services=self.kwargs['service_id'])
-
-
-class TripByShapeListView(ListView):
-    model = ShapePoint
-
-    def get_context_data(self, **kwargs):
-        context = super(TripByShapeListView, self).get_context_data(**kwargs)
-        context['shape'] = Shape.objects.get(id=self.kwargs['shape_id'])
-        context['feed_id'] = self.kwargs['feed_id']
-        return context
-
-    def get_queryset(self, **kwargs):
-        return Trip.objects.filter(shape=self.kwargs['shape_id'])

@@ -1,5 +1,7 @@
-explore = {
+console.log("Loading map funcs");
+map = {
     mapPoint: function(map_id, x, y, zoom) {
+	console.log("Mapping point");
         var map = new OpenLayers.Map(map_id);
         var osm = new OpenLayers.Layer.OSM("OpenStreetMap Map");
         var fromProjection = new OpenLayers.Projection("EPSG:4326");
@@ -13,7 +15,8 @@ explore = {
 
         map.setCenter(position, zoom);
     },
-    mapLine: function(map_id, line_wkt) {
+    mapLines: function(map_id, lines_wkt, draw) {
+	console.log("Mapping line");
         var map = new OpenLayers.Map(map_id);
         var osm = new OpenLayers.Layer.OSM("OpenStreetMap Map");
         var fromProjection = new OpenLayers.Projection("EPSG:4326");
@@ -29,16 +32,32 @@ explore = {
         style.rotation = 45;
         style.strokeLinecap = "butt";
         var vectorLayer = new OpenLayers.Layer.Vector("Line", {'style': style});
+        map.addLayer(vectorLayer);
         var wkt = new OpenLayers.Format.WKT({
             'internalProjection': toProjection,
             'externalProjection': fromProjection,
             'style': style });
-        var lineVector = wkt.read(line_wkt);
-        var bounds = lineVector.geometry.getBounds();
-
-        map.addLayer(vectorLayer);
-        vectorLayer.addFeatures([lineVector]);
-
-        map.zoomToExtent(bounds);
+        var maxBounds = null;
+        var maxSize = 0;
+        for(line in lines_wkt){
+            var lineVector = wkt.read(lines_wkt[line]);
+            var bounds = lineVector.geometry.getBounds();
+            var size = bounds.getSize().w*bounds.getSize().h;
+            if(size>maxSize){
+                maxSize = size;
+                maxBounds = bounds;
+            }
+	    if(draw){
+                vectorLayer.addFeatures([lineVector]);
+	    }
+        }
+        map.zoomToExtent(maxBounds);
+       
+	// var markers = new OpenLayers.Layer.Markers( "Markers" );
+        // map.addLayer(markers);
+        // {% for stop in stops %}
+        //    var position = new OpenLayers.LonLat({{stop.point.x}}, {{stop.point.y}}).transform(fromProjection, toProjection);
+	//    markers.addMarker(new OpenLayers.Marker(position));
+        // {% endfor %}
     }
 }
