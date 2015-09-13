@@ -20,9 +20,9 @@ class AgencyListAPIView(generics.ListCreateAPIView):
     serializer_class = AgencySerializer
     #TODO permissions
 
-class AgencyDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
+class AgencyDetailAPIView(generics.RetrieveAPIView):
     """
-    Retrieve, update or delete an agency instance.
+    Retrieve an agency instance.
     """
     model = Agency
     queryset = Agency.objects.all()
@@ -52,9 +52,9 @@ class TypedRouteListAPIView(generics.ListAPIView):
         rtype = self.kwargs['r_type']
         return Route.objects.filter(agency__id=agency_id,rtype=rtype)
 
-class RouteDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
+class RouteDetailAPIView(generics.RetrieveAPIView):
     """
-    Retrieve, update, or delete a route
+    Retrieve a route
     """
     model = Route
     queryset = Route.objects.all()
@@ -78,21 +78,14 @@ class DistinctTripListAPIView(APIView):
     """
     pass
         
-class TripDetailAPIView(APIView):
+class TripDetailAPIView(generics.RetrieveAPIView):
     """
     Retrieve, update, delete a trip
     """
-    def __init__(self):
-        self.model = Trip
-        self.serializer = TripSerializer
-
-    def get(self, request, trip_id):
-        try:
-            trip = self.model.objects.get(pk=trip_id)
-            serialized = self.serializer(trip)
-            return Response(serialized.data)
-        except self.model.DoesNotExist:
-            raise Http404
+    lookup_url_kwarg = 'trip_id'
+    queryset = Trip.objects.all()
+    model = Trip
+    serializer_class = TripSerializer
 
 class RouteStopsListAPIView(generics.ListAPIView):
     """
@@ -109,9 +102,9 @@ class RouteStopsListAPIView(generics.ListAPIView):
         stops = Stop.objects.filter(id__in=stop_ids).distinct()
         return stops
 
-class StopDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
+class StopDetailAPIView(generics.RetrieveAPIView):
     """
-    Retrieve, update or delete an stop time instance.
+    Retrieve an stop time instance.
     """
     model = Stop
     queryset = Stop.objects.all()
@@ -168,7 +161,7 @@ class StopTimesListAPIView(generics.ListAPIView):
         stop_id = self.kwargs['stop_id']
         return StopTime.objects.filter(stop__id=stop_id)
 
-class StopTimeDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
+class StopTimeDetailAPIView(generics.RetrieveAPIView):
     """
     Retrieve, update or delete an stop time instance.
     """
