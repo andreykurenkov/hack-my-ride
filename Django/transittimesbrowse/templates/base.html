@@ -6,7 +6,7 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{% block head_title %}Explore - django-multi-gtfs{% endblock %}</title>
+    <title>{% block head_title %}TransitTimes{% endblock %}</title>
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
@@ -22,11 +22,11 @@
         <div class="navigation-wrapper">
             <div class="top-navigation">
                 <nav role="navigation" id="site-nav" class="nav">
-                <a href="{% url 'home' %}}"><img id="logo" src="{% static "images/logo_large.png" %}" /></a>
+                <a href="{% url 'home' %}"><img id="logo" src="{% static "images/logo_large.png" %}" /></a>
                 <ul>
                     <li><a href="{% url 'home' %}"  class="navlink">Home</a></li>
-                    <li><a href="{% url 'home' %}"  class="navlink">About</a></li>
-                    <li><a href="{% url 'home' %}"  class="navlink">Contact</a></li>
+                    <li><a href="{% url 'about' %}"  class="navlink">About</a></li>
+                    <li><a href="mailto:thingswithworth@gmail.com" class="navlink">Contact</a></li>
                 </ul>
                 </nav>
             </div>

@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% block page_title %}About TransitTimes{% endblock %}
+{% block page_top_content %}
+This website is an alpha-state component of a submission to the hackmyride2 devpost competition.
+It is primarily meant to be accessed on mobile devices that are directed to the right stop page 
+via a Beacon broadcasting the Eddystone URL signal appropriate for the stop where it is located.
+Eddystone URLs can be seen by IPhones with no app installed besides Chrome, which will also be
+the case for Android, so the user does not need to worry about having installed an app prior to see
+the URL. Since it is meant as a fast to use site for mobile devices, it is very simple.
+The user can navigate to the URL to see the upcoming stops, and then browse further to look at other
+stops or routes. In the future, it can also point the user to the app component of the submission, 
+which also interacts with the beacon and provide additional functionality.
+{% endblock %}

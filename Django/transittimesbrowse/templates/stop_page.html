@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% block head_extra %}
+<script src="http://openlayers.org/api/OpenLayers.js"></script>
+<script src="{% static 'js/maps.js' %}"></script>
+{% endblock %}
+
+{% block page_title %} Details for stop {{stop.name}} of {{agency.name}} {% endblock %}
+{% block page_below_title %}
+     {% if stop.point %}
+         <div class="row" style="height:300px" id="mapdiv"></div>
+     {% endif %}
+{% endblock %}
+{% block page_top_content_elem %}{% endblock %}
+{% block page_middle_content %}
+
+<h2>Upcoming stop times:</h2>
+<div class="list-group" id="list">
+    {% include "stop_times_list.html" %}
+</div>
+
+<dl>
+    {% if stop.desc %}<dt>desc</dt><dd>{{stop.desc}}</dd>{% endif %}
+    {% if stop.get_whhelcher_boarding_type_display %}<dt>wheelchair_boarding</dt><dd>{{stop.get_wheelchair_boarding_type_display}}</dd>{% endif %}
+</dl>
+{% endblock %}
+{% block body_script %}
+  {% if stop.point %}
+    <script  type="text/javascript">
+        map.mapPoint('mapdiv', {{stop.point.x}}, {{stop.point.y}}, 16);
+        var date = new Date();
+        var hours = date.getHours();
+        var min = date.getMinutes();
+        var sec = date.getSeconds();
+        var currentSeconds = hours*3600+min*60+sec;
+        $.ajax({
+            url: window.location.pathname,
+            data:{'time':currentSeconds,'num':5},
+            type: 'GET',
+            async: false,
+            success: function(data){ 
+                $('#list').html(data);
+             },
+             error: function(data) {
+                console.log(data); //or whatever
+             }
+         });
+    </script>
+  {% endif %}
+{% endblock %}

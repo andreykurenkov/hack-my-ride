@@ -2,19 +2,19 @@
 {% load staticfiles %}
 
 {% block head_extra %}
-    {% if route.geometry %}
+    {% if trip.geometry %}
         <script src="http://openlayers.org/api/OpenLayers.js"></script>
         <script src="{% static 'js/maps.js' %}"></script>
     {% endif %}
 {% endblock %}
 
-{% block page_title %}Stops for route {{route.long_name}} of {{agency.name}}{% endblock %}
+{% block page_title %}Stop for {{trip.headsign}}{% endblock %}
 {% block page_below_title %}
-     {% if route.geometry %}
+     {% if trip.geometry %}
          <div class="row" style="height:300px" id="mapdiv"></div>
      {% endif %}
 {% endblock %}
-{% block page_top_content %}Select the stop of route {{route.long_name}} you would like to find info about.{% endblock %}
+{% block page_top_content %}Select the stop of trip {{trip.headsign}} you would like to find info about.{% endblock %}
 {% block page_middle_content %}
 <div class="form-group">
     <textarea placeholder="You can search for a stop name here" class="form-control" rows="1" id="text_search"></textarea>
@@ -25,9 +25,9 @@
 {% endblock %}
 {% block body_script %}
     <script type="text/javascript" src="{% static "js/updatelist.js" %}"></script>
-    {% if route.geometry %}
-        <script type="text/javascript">
-            map.mapLines('mapdiv', ['{{route.geometry.wkt}}'],true);
+    {% if trip.geometry %}
+        <script type="text/javascript" defer>
+		map.mapLines('mapdiv', ['{{trip.geometry.wkt}}'],true);
         </script>
     {% endif %}
 {% endblock %}

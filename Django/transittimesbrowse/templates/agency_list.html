@@ -1,6 +1,6 @@
 {% for agency in agencies %}
   {% if forloop.first %}<ul>{% endif %}
-      <a href="{% url 'routes' agency_id=agency.agency_id %}" class="list-group-item">{{agency.agency_id}} - {{ agency.name }}</a></li>
+      <a href="{% url 'routes' agency_id=agency.agency_id %}" class="list-group-item">{{agency.agency_id}} - {{ agency.name }}</a>
   {% if forloop.last %}</ul>{% endif %}
 {% empty %}
   <p><em>No agencies matching that search input.</em></p>

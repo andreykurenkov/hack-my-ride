@@ -1,0 +1,19 @@
+{% for stop_time in stop_times %}
+  {% if forloop.first %}<ul>{% endif %}
+    {% if trip %} 
+        {% if stop_time.arrival_time %}
+            <a href="{% url 'stop' stop_id=stop.pk agency_id=agency.agency_id route_id=route.id%}" class="list-group-item">{{ stop_time.arrival_time }} at {{ stop_time.stop.name }}</a>
+        {% else %}
+            <a href="{% url 'stop' stop_id=stop.pk agency_id=agency.agency_id route_id=route.id%}" class="list-group-item">{{ stop_time.stop.name }}</a>
+       {% endif %}
+    {% else %}
+        {% if stop_time.arrival_time %}
+            <a href="{% url 'trip' stop_id=stop.pk agency_id=agency.agency_id route_id=route.id trip_id=stop_time.trip.pk%}" class="list-group-item">{{ stop_time.arrival_time }} - {{ stop_time.trip.headsign }} </a>
+       {% else %}
+            <a href="{% url 'trip' stop_id=stop.pk agency_id=agency.agency_id route_id=route.id trip_id=stop_time.trip.pk%}" class="list-group-item">{{ stop_time.trip.headsign }} </a>
+       {% endif %}
+    {% endif %}
+  {% if forloop.last %}</ul>{% endif %}
+{% empty %}
+  <p><em>No stop times that match input.</em></p>
+{% endfor %}

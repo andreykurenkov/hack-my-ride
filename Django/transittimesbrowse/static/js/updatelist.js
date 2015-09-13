@@ -1,6 +1,7 @@
 console.log('Loading text update script')
 $(document).ready(function() {
     $('#text_search').bind('input',function(){
+        console.log('Calling to update list')
         $.get(window.location.pathname, {'search':$(this).val()},function(data){
             $('#list').html(data);
         });

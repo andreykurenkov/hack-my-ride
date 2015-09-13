@@ -1,6 +1,6 @@
 {% for stop in stops %}
   {% if forloop.first %}<ul>{% endif %}
-    <a href="{% url 'stop_detail' stop_id=stop.pk %}" class="list-group-item">{{ stop.name }}</a></li>
+    <a href="{% url 'stop' stop_id=stop.pk agency_id=agency.agency_id route_id=route.route_id %}" class="list-group-item">{{ stop.name }}</a>
   {% if forloop.last %}</ul>{% endif %}
 {% empty %}
   <p><em>No stops matching that input.</em></p>
