@@ -21,7 +21,7 @@ static void initialise_ui(void) {
   s_res_gothic_28_bold = fonts_get_system_font(FONT_KEY_GOTHIC_28_BOLD);
   s_res_gothic_18_bold = fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD);
   // logo
-  logo = bitmap_layer_create(GRect(95, 29, 47, 47));
+  logo = bitmap_layer_create(GRect(95, 34, 47, 47));
   bitmap_layer_set_bitmap(logo, s_res_logo_s);
   layer_add_child(window_get_root_layer(s_window), (Layer *)logo);
   
@@ -33,14 +33,14 @@ static void initialise_ui(void) {
   layer_add_child(window_get_root_layer(s_window), (Layer *)name_text);
   
   // stop_name_text
-  stop_name_text = text_layer_create(GRect(4, 31, 90, 35));
+  stop_name_text = text_layer_create(GRect(4, 31, 90, 50));
   text_layer_set_text(stop_name_text, "No Stop Info");
   text_layer_set_text_alignment(stop_name_text, GTextAlignmentCenter);
   text_layer_set_font(stop_name_text, s_res_gothic_18_bold);
   layer_add_child(window_get_root_layer(s_window), (Layer *)stop_name_text);
   
   // stop_time_menu
-  stop_time_menu = menu_layer_create(GRect(0, 82, 144, 91));
+  stop_time_menu = menu_layer_create(GRect(-1, 87, 145, 65));
   menu_layer_set_click_config_onto_window(stop_time_menu, s_window);
   layer_add_child(window_get_root_layer(s_window), (Layer *)stop_time_menu);
 }

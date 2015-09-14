@@ -65,8 +65,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         setContentView(R.layout.activity_main);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
-        ButterKnife.bind(this);
-
         TransitTimesApplication.getBus().register(this);
 
         if (savedInstanceState == null) {
@@ -144,7 +142,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 openStopRequest.getDialog().hide();
             }
 
-            stopDetailFragment.updateStop(openStopRequest.getStop());
+            stopDetailFragment.updateStopAndRefresh(openStopRequest.getStop());
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.container, stopDetailFragment)
                     .addToBackStack("")
@@ -164,7 +162,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     }
 
     @Subscribe
-    public void onNewBeacon(AtStopNotification stopNotification)
+    public void onStopNotification(AtStopNotification stopNotification)
     {
         Log.d(TAG, "Bus event for ID " + stopNotification.getStop().getStop_id());
         systemFragment.updateBeaconStop(stopNotification.getStop());

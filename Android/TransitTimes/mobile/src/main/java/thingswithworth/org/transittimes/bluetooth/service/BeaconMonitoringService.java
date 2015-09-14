@@ -89,28 +89,12 @@ public class BeaconMonitoringService extends Service implements BeaconConsumer {
     }
 
     private void respondToNewStop(Beacon beacon, int id) {
-        GregorianCalendar cal = new GregorianCalendar();
-        int currentSecond =cal.get(Calendar.SECOND);
-        int currentMinute =cal.get(Calendar.MINUTE);
-        int currentHour =cal.get(Calendar.HOUR);
-        int currentTotalSeconds = currentSecond + currentMinute*60 + currentHour*3600;
-        Observable<Stop> stopO = mRESTService.stopService.getStop(id);
-        Observable<List<StopTime>>  stopTimesO =  mRESTService.stopService.getNextStopTimesAtStop(id, currentTotalSeconds, 3);
-        Log.d(TAG,String.format("Looking for %d times after %d seconds",3,currentTotalSeconds));
-        Stop stop = stopO.toBlocking().single();//Because YOLO
-        List<StopTime> stop_times = stopTimesO.toBlocking().single();//Because YOLO
-        for(StopTime stop_time: stop_times){
-            Observable<Trip> tripO=  mRESTService.tripService.getTrip(stop_time.getTrip());
-            //this is not efficient and I DONT EVEN CARE
-            stop_time.setTripData(tripO.toBlocking().single());
-        }
-
-                //TODO some of dat error handling
-        TransitTimesApplication.getBus().post(new AtStopNotification(beacon,stop,stop_times));
-        postNotification(stop, stop_times);
+        Stop stop = TransitTimesRESTServices.getInstance().getDetailedStopTimes(id,3,true);
+        TransitTimesApplication.getBus().post(new AtStopNotification(beacon,stop,stop.getStopTimes()));
+        postNotification(stop, stop.getStopTimes(), 3);
     }
 
-    private void postNotification(Stop stop, List<StopTime> nextTimes){
+    private void postNotification(Stop stop, List<StopTime> nextTimes, int num){
         NotificationCompat.Builder mBuilder =
         new NotificationCompat.Builder(this)
                 .setContentTitle("At "+stop.getName())
@@ -121,9 +105,20 @@ public class BeaconMonitoringService extends Service implements BeaconConsumer {
         // Sets a title for the Inbox in expanded layout
          // Moves events into the expanded layout
         inboxStyle.setSummaryText("Click to go to app view.");
-        for(StopTime stopTime:nextTimes) {
-            String contentText="Stop "+stopTime.getArrival_time().toString(false,false)+" for "+stopTime.getTripData().getHeadsign()+"\n";
-            inboxStyle.addLine(contentText);
+        for(int i=0;i<num;i++) {
+            if(nextTimes.size()<num)
+                break;
+            StopTime stopTime = nextTimes.get(i);
+            if(stopTime.getRealtime()!=null) {
+                String contentText = "At " + stopTime.getArrival_time().toString(false, false) +
+                        " (predicted " + stopTime.getRealtime().toString(false, false) +
+                        ") for " + stopTime.getTripData().getHeadsign() + "\n";
+                inboxStyle.addLine(contentText);
+            }else{
+                String contentText = "At " + stopTime.getArrival_time().toString(false, false) +
+                        " for " + stopTime.getTripData().getHeadsign() + "\n";
+                inboxStyle.addLine(contentText);
+            }
         }
         // Moves the expanded layout object into the notification object.
         mBuilder.setStyle(inboxStyle);

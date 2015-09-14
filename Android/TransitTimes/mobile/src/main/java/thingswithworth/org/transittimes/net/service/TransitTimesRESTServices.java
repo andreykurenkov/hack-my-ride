@@ -15,6 +15,9 @@ import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Response;
 
 import java.io.IOException;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -22,11 +25,18 @@ import java.util.concurrent.TimeUnit;
 import retrofit.RestAdapter;
 import retrofit.client.OkClient;
 import retrofit.converter.GsonConverter;
+import rx.Observable;
 import thingswithworth.org.transittimes.model.Route;
 import thingswithworth.org.transittimes.model.RouteTypeDeserializer;
+import thingswithworth.org.transittimes.model.SecondsPosixTime;
+import thingswithworth.org.transittimes.model.SecondsTime;
+import thingswithworth.org.transittimes.model.Stop;
+import thingswithworth.org.transittimes.model.StopTime;
+import thingswithworth.org.transittimes.model.Trip;
 import thingswithworth.org.transittimes.net.interfaces.AgencyService;
 import thingswithworth.org.transittimes.net.interfaces.RouteService;
 import thingswithworth.org.transittimes.net.interfaces.StopService;
+import thingswithworth.org.transittimes.net.interfaces.StopTimeService;
 import thingswithworth.org.transittimes.net.interfaces.TripService;
 
 /**
@@ -40,6 +50,7 @@ public class TransitTimesRESTServices
     public RouteService routeService;
     public TripService tripService;
     public StopService stopService;
+    public StopTimeService stopTimeService;
 
     private static TransitTimesRESTServices service;
     private static Application context;
@@ -73,8 +84,8 @@ public class TransitTimesRESTServices
         } catch (Exception e) {
             Log.d(TAG, "Unable to set http cache", e);
         }
-        caching_client.setReadTimeout(30, TimeUnit.SECONDS);
-        caching_client.setConnectTimeout(30, TimeUnit.SECONDS);
+        caching_client.setReadTimeout(120, TimeUnit.SECONDS);
+        caching_client.setConnectTimeout(120, TimeUnit.SECONDS);
 
         Gson gson = new GsonBuilder()
                 .registerTypeAdapter(Route.RouteType.class, new RouteTypeDeserializer())
@@ -110,6 +121,7 @@ public class TransitTimesRESTServices
         routeService = adapter.create(RouteService.class);
         stopService = adapter.create(StopService.class);
         tripService = adapter.create(TripService.class);
+        stopTimeService = adapter.create(StopTimeService.class);
     }
 
     private static final Interceptor mCacheControlInterceptor = new Interceptor() {
@@ -117,6 +129,8 @@ public class TransitTimesRESTServices
         public Response intercept(Chain chain) throws IOException {
             //See https://docs.google.com/presentation/d/1eJa0gBZLpZRQ5vjW-eqLyekEgB54n4fQ1N4jDcgMZ1E/edit#slide=id.g75a45c04a_079
             Request request = chain.request();
+            if(request.httpUrl().toString().contains("realtime"))
+                return chain.proceed(request).newBuilder().build();
 
             // Add Cache Control only for GET methods
             if (request.method().equals("GET")) {
@@ -135,6 +149,41 @@ public class TransitTimesRESTServices
                     .build();
         }
     };
+
+    /**
+     * Get a stop, its upcoming stop times, and the trips associated with the stop times.
+     *
+     * @param stop_id
+     * @param num
+     * @return
+     */
+    public Stop getDetailedStopTimes(int stop_id,int num, boolean getRealTime){
+        Log.i(TAG,"Getting detailed info for stop "+stop_id);
+        GregorianCalendar cal = new GregorianCalendar();
+        int currentSecond = cal.get(Calendar.SECOND);
+        int currentMinute = cal.get(Calendar.MINUTE);
+        int currentHour = cal.get(Calendar.HOUR_OF_DAY);
+        int currentTotalSeconds = currentSecond + currentMinute*60 + currentHour*3600;
+        Observable<Stop> stopO = stopService.getStop(stop_id);
+        Observable<List<StopTime>>  stopTimesO =  stopService.getNextStopTimesAtStop(stop_id, currentTotalSeconds, num);
+        Log.d(TAG,String.format("Looking for %d times after %d seconds",num,currentTotalSeconds));
+        Stop stop = stopO.toBlocking().single();//Because YOLO
+        List<StopTime> stop_times = stopTimesO.toBlocking().single();//Because YOLO
+        for(StopTime stop_time: stop_times){
+            Observable<Trip> tripO=  tripService.getTrip(stop_time.getTrip());
+            stop_time.setStopData(stop);
+            //this is not efficient and I DONT EVEN CARE
+            stop_time.setTripData(tripO.toBlocking().single());
+
+            if(getRealTime) {
+                Observable<SecondsPosixTime> secondsO = stopTimeService.getRealTimeStopTimesPrediction(stop_time.getId());
+                SecondsTime seconds = secondsO.toBlocking().single().getTimeOfDay();
+                stop_time.setRealtime(seconds);
+            }
+        }
+        stop.setStopTimes(stop_times);
+        return stop;
+    }
 
 
 }

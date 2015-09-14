@@ -12,13 +12,18 @@
     "resources": {
         "media": [
             {
+                "file": "images/ic_launchers.png",
+                "menuIcon": true,
+                "name": "menu_logo",
+                "type": "png"
+            },
+            {
                 "file": "images/ic_launcher.png",
                 "name": "logo_b",
                 "type": "png"
             },
             {
                 "file": "images/ic_launcherm.png",
-                "menuIcon": true,
                 "name": "logo_s",
                 "type": "png"
             }

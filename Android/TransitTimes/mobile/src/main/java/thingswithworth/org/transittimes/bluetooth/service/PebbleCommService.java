@@ -23,7 +23,7 @@ import thingswithworth.org.transittimes.model.StopTime;
 public class PebbleCommService extends Service {
     private String TAG = "PebbleCommService";
     private final static UUID PEBBLE_APP_UUID = UUID.fromString("68932137-3a91-4205-bf0d-4a5fcebd88dc");
-
+    private PebbleDictionary data;
     @Override
     public void onDestroy() {
         super.onDestroy();
@@ -71,7 +71,8 @@ public class PebbleCommService extends Service {
 
             @Override
             public void receiveNack(Context context, int transactionId) {
-                Log.i(TAG, "Received nack for transaction " + transactionId);
+                Log.i(TAG, "Received nack for transaction " + transactionId+" , resending.");
+                PebbleKit.sendDataToPebble(getApplicationContext(), PEBBLE_APP_UUID, data);
             }
 
         });
@@ -79,19 +80,23 @@ public class PebbleCommService extends Service {
     }
 
     @Subscribe
-    public void atStop(AtStopNotification atStopNotification)
+    public void atStopNotification(AtStopNotification atStopNotification)
     {
-        Log.i(TAG, "Sending Pebble info for stop "+atStopNotification.getStop().getName());
-
         PebbleKit.startAppOnPebble(getApplicationContext(), PEBBLE_APP_UUID);
-        PebbleDictionary data = new PebbleDictionary();
+        Log.i(TAG, "Sending Pebble info for stop " + atStopNotification.getStop().getName());
+        data = new PebbleDictionary();
 
-        data.addString(0, atStopNotification.getStop().getName());
-        data.addInt8(1, (byte)atStopNotification.getTimes().size());
+        data.addString(0, atStopNotification.getStop().getName().replace("(0)", "(out)").replace("(1)", "(in)"));
+        data.addInt8(1, (byte)Math.min(5,atStopNotification.getTimes().size()));
         int i=2;
         for(StopTime time:atStopNotification.getTimes()){
             data.addString((i++), time.getTripData().getHeadsign());
-            data.addString((i++), time.getArrival_time().toString(false,false));
+            String str = time.getArrival_time().toString(false,false);
+            if(time.getRealtime()!=null)
+                str+=", predicted: "+time.getRealtime().toString(false,false);
+            data.addString((i++), str);
+            if(i==12)//send max of 5 times
+                break;
         }
 
         PebbleKit.sendDataToPebble(getApplicationContext(), PEBBLE_APP_UUID, data);

@@ -98,5 +98,6 @@ public class StopListFragment extends Fragment
     {
         mStopList.clear();
         mStopList.addAll(stops);
+        mStopAdapter.notifyDataSetChanged();
     }
 }

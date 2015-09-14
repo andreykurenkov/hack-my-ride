@@ -87,7 +87,7 @@ public class RouteDetailFragment extends Fragment implements OnMapReadyCallback,
                     LatLng coordinate = new LatLng(s.getPoint().getCoordinates()[1], s.getPoint().getCoordinates()[0]);
                    marker_to_stop.put(mMap.addMarker(new MarkerOptions()
                         .position(coordinate)
-                        .title(s.getName())), s);
+                        .title(s.getName().replace("(0)","(outbound)").replace("(1)","(inbound)"))), s);
 
                     bounds.include(coordinate);
                 }

@@ -6,6 +6,7 @@ import com.google.gson.annotations.SerializedName;
  * Created by Alex on 8/27/2015.
  */
 public class StopTime {
+    private int id;
     private int trip;
     private int stop;
     private SecondsTime arrival_time;
@@ -19,9 +20,12 @@ public class StopTime {
     private Trip tripData;
     private Stop stopData;
 
-    public StopTime(int trip, int stop, SecondsTime arrival_time, SecondsTime departure_time,
+    private SecondsTime realtime;
+
+    public StopTime(int id, int trip, int stop, SecondsTime arrival_time, SecondsTime departure_time,
                     int stop_sequence, String stop_headsign, String pickup_type, String drop_of_type,
                     float shape_dist_traveled) {
+        this.id = id;
         this.trip = trip;
         this.stop = stop;
         this.arrival_time = arrival_time;
@@ -31,6 +35,14 @@ public class StopTime {
         this.pickup_type = pickup_type;
         this.drop_of_type = drop_of_type;
         this.shape_dist_traveled = shape_dist_traveled;
+    }
+
+    public int getId(){
+        return id;
+    }
+
+    public void setId(int id){
+        this.id = id;
     }
 
     public int getTrip() {
@@ -121,5 +133,11 @@ public class StopTime {
         this.stopData = stopData;
     }
 
+    public SecondsTime getRealtime() {
+        return realtime;
+    }
 
+    public void setRealtime(SecondsTime realtime) {
+        this.realtime = realtime;
+    }
 }

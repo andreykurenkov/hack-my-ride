@@ -3,6 +3,7 @@ package thingswithworth.org.transittimes.ui.fragment;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,9 +25,14 @@ import java.util.List;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
+import rx.Observable;
 import thingswithworth.org.transittimes.R;
+import thingswithworth.org.transittimes.model.SecondsPosixTime;
+import thingswithworth.org.transittimes.model.SecondsTime;
 import thingswithworth.org.transittimes.model.Stop;
 import thingswithworth.org.transittimes.model.StopTime;
+import thingswithworth.org.transittimes.model.Trip;
+import thingswithworth.org.transittimes.net.events.OpenRouteRequest;
 import thingswithworth.org.transittimes.net.service.TransitTimesRESTServices;
 
 /**
@@ -35,7 +41,6 @@ import thingswithworth.org.transittimes.net.service.TransitTimesRESTServices;
 public class StopDetailFragment extends Fragment implements OnMapReadyCallback
 {
     private Stop mCurrentStop;
-    private List<StopTime> mNextStopTimes;
 
     @Bind(R.id.titleView)
     TextView mTitleView;
@@ -97,52 +102,47 @@ public class StopDetailFragment extends Fragment implements OnMapReadyCallback
 
     private void refreshView()
     {
-
-        if(mCurrentStop!=null) {
-            mTitleView.setText(mCurrentStop.getName());
+        if(mCurrentStop!=null && mTitleView!=null) {
+            mTitleView.setText(mCurrentStop.getName().replace("(0)", "(outbound)").replace("(1)", "(inbound)"));
 
             GregorianCalendar cal = new GregorianCalendar();
-            int currentSecond =cal.get(Calendar.SECOND);
-            int currentMinute =cal.get(Calendar.MINUTE);
-            int currentHour =cal.get(Calendar.HOUR);
-            int currentTotalSeconds = currentSecond + currentMinute*60 + currentHour*3600;
+            int currentSecond = cal.get(Calendar.SECOND);
+            int currentMinute = cal.get(Calendar.MINUTE);
+            int currentHour = cal.get(Calendar.HOUR_OF_DAY);
+            int currentTotalSeconds = currentSecond + currentMinute * 60 + currentHour * 3600;
+            final TextView[] textViews = {firstStopTimeView, secondStopTimeView, thirdStopTimeView, fourthStopTimeView, fifthStopTimeView};
 
             TransitTimesRESTServices.getInstance().stopService.getNextStopTimesAtStop(mCurrentStop.getId(), currentTotalSeconds, 6).subscribe(
-                    (stop_times)->{
+                    (stop_times) -> {
+                        if (stop_times.size() == 0) {
+                            mDetailView.setText("Departure time is not available");
+                            mContainer.setVisibility(View.GONE);
+                        } else {
+                            for (int i = 0; i < stop_times.size(); i++) {
+                                final int index = i;
+                                StopTime stopTime = stop_times.get(i);
+                                TransitTimesRESTServices.getInstance().tripService.getTrip(stopTime.getTrip()).subscribe((trip)-> {
+                                            stopTime.setTripData(trip);
+                                            String str = trip.getHeadsign() + " scheduled: " + stopTime.getDeparture_time().toString(false, false);
+                                            getActivity().runOnUiThread(() -> {
+                                                textViews[index].setText(str);
+                                                textViews[index].invalidate();
+                                            });
 
-                        List<StopTime> stopTimes = stop_times;
-
-
-                        getActivity().runOnUiThread(() ->
-                        {
-                            if(stopTimes.size()==0)
-                            {
-                                mDetailView.setText("Departure time is not available");
-                                mContainer.setVisibility(View.GONE);
+                                            TransitTimesRESTServices.getInstance().stopTimeService.getRealTimeStopTimesPrediction(stopTime.getId()).subscribe(real_time_stop -> {
+                                                    stopTime.setRealtime(real_time_stop.getTimeOfDay());
+                                                    getActivity().runOnUiThread(() -> {
+                                                        textViews[index].setText(str + ", predicted: " + stopTime.getRealtime().toString(false, false));
+                                                        textViews[index].invalidate();
+                                                    });
+                                            });
+                                 });
                             }
-                            else {
-                                try {
-                                    mContainer.setVisibility(View.VISIBLE);
-                                    mDetailView.setText("Next Departure Time: " + stopTimes.get(0).getDeparture_time().toString(false, false));
-                                    firstStopTimeView.setText(stopTimes.get(1).getDeparture_time().toString(false, false));
-                                    secondStopTimeView.setText(stopTimes.get(2).getDeparture_time().toString(false, false));
-                                    thirdStopTimeView.setText(stopTimes.get(3).getDeparture_time().toString(false, false));
-                                    fourthStopTimeView.setText(stopTimes.get(4).getDeparture_time().toString(false, false));
-                                    fifthStopTimeView.setText(stopTimes.get(5).getDeparture_time().toString(false, false));
-                                } catch (IndexOutOfBoundsException aioob) {
-
-                                }
-                            }
-                        });
-
-                    }
-            );
-        }
-
-        if(mMap!=null)
-        {
+                        }});
+        if (mMap != null) {
             updateMap();
         }
+    }
     }
 
     @Override

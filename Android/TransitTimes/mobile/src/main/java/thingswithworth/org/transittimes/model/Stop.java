@@ -2,6 +2,8 @@ package thingswithworth.org.transittimes.model;
 
 import com.google.gson.annotations.SerializedName;
 
+import java.util.List;
+
 /**
  * Created by Alex on 8/27/2015.
  */
@@ -14,6 +16,7 @@ public class Stop
     private String description;
     private Point point;
     private String name;
+    private List<StopTime> stopTimes;
 
 
     public Stop() {
@@ -73,5 +76,13 @@ public class Stop
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public List<StopTime> getStopTimes() {
+        return stopTimes;
+    }
+
+    public void setStopTimes(List<StopTime> stop_times) {
+        this.stopTimes = stop_times;
     }
 }

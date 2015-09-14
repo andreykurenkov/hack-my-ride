@@ -68,7 +68,7 @@ public class StopAdapter extends RecyclerView.Adapter<StopAdapter.ViewHolder>
     public void onBindViewHolder(StopAdapter.ViewHolder holder, int position)
     {
         Stop stop = mStopList.get(position);
-        holder.mTitleView.setText(stop.getName());
+        holder.mTitleView.setText(stop.getName().replace("(0)", "(outbound)").replace("(1)", "(inbound)"));
 
         holder.mContainer.setOnClickListener((v)->
                 {
