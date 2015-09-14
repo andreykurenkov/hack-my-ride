@@ -54,4 +54,6 @@ dependencies {
     compile 'com.squareup.okhttp:okhttp:2.5.0'
     compile 'com.sothree.slidinguppanel:library:3.1.1'
     compile project(':android-support-v4-preferencefragment')
+    compile "org.parceler:parceler-api:1.0.3"
+    apt "org.parceler:parceler:1.0.3"
 }

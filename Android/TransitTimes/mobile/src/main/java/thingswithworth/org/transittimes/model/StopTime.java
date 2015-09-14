@@ -2,25 +2,30 @@ package thingswithworth.org.transittimes.model;
 
 import com.google.gson.annotations.SerializedName;
 
+import org.parceler.Parcel;
+
 /**
  * Created by Alex on 8/27/2015.
  */
+@Parcel
 public class StopTime {
-    private int id;
-    private int trip;
-    private int stop;
-    private SecondsTime arrival_time;
-    private SecondsTime departure_time;
-    private int stop_sequence;
-    private String stop_headsign;
-    private String pickup_type;
-    private String drop_of_type;
-    private float shape_dist_traveled;
+    int id;
+    int trip;
+    int stop;
+    SecondsTime arrival_time;
+    SecondsTime departure_time;
+    int stop_sequence;
+    String stop_headsign;
+    String pickup_type;
+    String drop_of_type;
+    float shape_dist_traveled;
 
-    private Trip tripData;
-    private Stop stopData;
+    Trip tripData;
+    Stop stopData;
 
-    private SecondsTime realtime;
+    SecondsTime realtime;
+
+    public StopTime(){}
 
     public StopTime(int id, int trip, int stop, SecondsTime arrival_time, SecondsTime departure_time,
                     int stop_sequence, String stop_headsign, String pickup_type, String drop_of_type,

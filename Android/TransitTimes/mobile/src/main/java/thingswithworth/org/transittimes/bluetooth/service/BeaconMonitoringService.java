@@ -7,6 +7,7 @@ import android.app.TaskStackBuilder;
 import android.content.Context;
 import android.content.Intent;
 import android.os.IBinder;
+import android.os.Parcelable;
 import android.os.RemoteException;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
@@ -17,6 +18,7 @@ import org.altbeacon.beacon.Beacon;
 import org.altbeacon.beacon.BeaconConsumer;
 import org.altbeacon.beacon.RangeNotifier;
 import org.altbeacon.beacon.Region;
+import org.parceler.Parcels;
 
 import java.util.Calendar;
 import java.util.Collection;
@@ -124,7 +126,9 @@ public class BeaconMonitoringService extends Service implements BeaconConsumer {
         mBuilder.setStyle(inboxStyle);
         // Creates an explicit intent for an Activity in your app
         Intent resultIntent = new Intent(this, MainActivity.class);
-
+        stop.setStopTimes(nextTimes);
+        Parcelable stopData = Parcels.wrap(stop);
+        resultIntent.putExtra("stop_data", stopData);
         // The stack builder object will contain an artificial back stack for the
         // started Activity.
         // This ensures that navigating backward from the Activity leads out of

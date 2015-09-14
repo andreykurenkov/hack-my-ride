@@ -1,5 +1,7 @@
 package thingswithworth.org.transittimes.model;
 
+import org.parceler.Parcel;
+
 /**
  * Created by andrey on 9/3/15.
  *
@@ -7,8 +9,11 @@ package thingswithworth.org.transittimes.model;
  * Same model as in multigtfs.
  */
 
+@Parcel
 public class SecondsTime {
-    private int seconds;
+    int seconds;
+
+    public SecondsTime(){}
 
     public SecondsTime(int seconds) {
         this.seconds = seconds;

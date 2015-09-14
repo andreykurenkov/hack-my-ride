@@ -5,6 +5,7 @@ import android.content.pm.ActivityInfo;
 import android.location.Location;
 
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
@@ -28,6 +29,7 @@ import com.mikepenz.materialdrawer.model.SecondaryDrawerItem;
 import com.squareup.otto.Subscribe;
 
 import org.altbeacon.beacon.BeaconManager;
+import org.parceler.Parcels;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -37,6 +39,7 @@ import thingswithworth.org.transittimes.bluetooth.BluetoothUtil;
 import thingswithworth.org.transittimes.bluetooth.events.AtStopNotification;
 import thingswithworth.org.transittimes.bluetooth.events.NewBeaconSeen;
 import thingswithworth.org.transittimes.bluetooth.service.BeaconMonitoringService;
+import thingswithworth.org.transittimes.model.Stop;
 import thingswithworth.org.transittimes.net.events.FilterMessage;
 import thingswithworth.org.transittimes.net.events.LocationUpdateMessage;
 import thingswithworth.org.transittimes.net.events.OpenPreferencesRequest;
@@ -77,6 +80,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                     .commit();
         }
 
+
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addApi(LocationServices.API)
                 .addConnectionCallbacks(this)
@@ -85,6 +89,17 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
         if(BeaconMonitoringService.lastSeenStop!=null)
             systemFragment.updateBeaconStop(BeaconMonitoringService.lastSeenStop);
+
+        if(getIntent().hasExtra("stop_data"))
+        {
+            Parcelable stopData = getIntent().getParcelableExtra("stop_data");
+            Stop stop = Parcels.unwrap(stopData);
+            stopDetailFragment.updateStopAndRefresh(stop);
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.container, stopDetailFragment)
+                    .addToBackStack("")
+                    .commit();
+        }
 
     }
 

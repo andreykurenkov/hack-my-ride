@@ -1,18 +1,24 @@
 package thingswithworth.org.transittimes.model;
 
+import org.parceler.Parcel;
+
 /**
  * Created by Alex on 8/27/2015.
  */
+
+@Parcel
 public class Trip {
-    private int route;
+    int route;
    // private Service service;
-    private String headsign;
-    private String direction;
+    String headsign;
+    String direction;
     //private Block block;
    // private Shape shape;
     //private Polyline geometry;
-    private String wheelchar_accessible;
-    private String bikes_allowed;
+    String wheelchar_accessible;
+    String bikes_allowed;
+
+    public Trip(){}
 
     public Trip(int route, String headsign, String direction, String wheelchar_accessible, String bikes_allowed) {
         this.route = route;

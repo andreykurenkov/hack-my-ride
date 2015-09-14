@@ -1,12 +1,15 @@
 package thingswithworth.org.transittimes.model;
 
+import org.parceler.Parcel;
+
 /**
  * Created by Alex on 8/27/2015.
  */
+@Parcel
 public class Point
 {
-    private String type;
-    private double[] coordinates;
+    String type;
+    double[] coordinates;
 
     public Point() {
     }

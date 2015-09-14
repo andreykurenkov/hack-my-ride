@@ -2,21 +2,25 @@ package thingswithworth.org.transittimes.model;
 
 import com.google.gson.annotations.SerializedName;
 
+import org.parceler.Parcel;
+
 import java.util.List;
 
 /**
  * Created by Alex on 8/27/2015.
  */
+
+@Parcel
 public class Stop
 {
-    private int id;
-    private String stop_id;
-    private String code;
+    int id;
+    String stop_id;
+    String code;
     @SerializedName("desc")
-    private String description;
-    private Point point;
-    private String name;
-    private List<StopTime> stopTimes;
+    String description;
+    Point point;
+    String name;
+    List<StopTime> stopTimes;
 
 
     public Stop() {
