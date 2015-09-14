@@ -142,13 +142,13 @@ class StopNextTimesAPIView(generics.ListAPIView):
         time = self.kwargs['time']
         num=1
         if 'num' in self.request.query_params:
-            num = self.request.query_params['num']
+            num = int(self.request.query_params['num'])
         stop = Stop.objects.get(id=stop_id)
-        if stop.stoptime_set.aggregate(Max('arrival_time'))<time:
-            time = 0
         timecompare = Seconds(int(time))
-        stoptimes = stop.stoptime_set.filter(arrival_time__gt=timecompare).order_by('arrival_time')[0:num]
-        return stoptimes
+        stoptimes = stop.stoptime_set.filter(arrival_time__gt=timecompare).order_by('arrival_time')
+        if len(stoptimes)==0:
+            stoptimes = stop.stoptime_set.order_by('arrival_time')
+        return stoptimes[0:min(len(stoptimes),num)]
 
 class StopTimesListAPIView(generics.ListAPIView):
     """

@@ -8,7 +8,7 @@ from multigtfs.models import (
     Agency, Block, Fare, FareRule, Feed, Frequency, Route, Service, ServiceDate, Shape,
     ShapePoint, Stop, StopTime, Trip)
 from transitrestapi.serializers import *
-from django.http import Http404
+from django.http import HttpResponseNotFound
 import abc 
 import gtfs_realtime_pb2
 import requests
@@ -53,18 +53,18 @@ class TripRealTimeUpdatesAPIView(APIView):
         msg= gtfs_realtime_pb2.FeedMessage()
         msg.ParseFromString(data)
         json = protobuf_json.pb2json(msg)['entity']
-        json_route = filter(lambda obj: obj['trip_update']['trip']['trip_id']==trip.trip_id,json)[0]
-        return Response(json_route)
+        json_route = filter(lambda obj: obj['trip_update']['trip']['trip_id']==trip.trip_id,json)
+        if len(json_route)==0:
+            return HttpResopnseNotFound()
+        return Response(json_route[0])
 
-class StopRealTimeUpdatesAPIView(generics.RetrieveAPIView):
+class StopRealTimeUpdatesAPIView(APIView):
     """
-    Get realtime data about a stop
+    Get realtime data about a stop, in POSIX time
+    https://developers.google.com/transit/gtfs-realtime/reference#StopTimeEvent
     """
-    model = Seconds
-    serializer_class = SecondsSerializer
 
-    def get_object(self):
-        stop_time_id = int(self.kwargs['stop_time_id'])
+    def get(self,request,stop_time_id,format=None):
         stop_time = StopTime.objects.all().get(pk=stop_time_id)
         stop = stop_time.stop
         trip = stop_time.trip
@@ -77,8 +77,8 @@ class StopRealTimeUpdatesAPIView(generics.RetrieveAPIView):
         for obs in json:
             for stop_time_update in obs['trip_update']['stop_time_update']:
                 if stop_time_update['stop_id']==stop.code and 'departure' in stop_time_update:
-                    return Seconds(int(stop_time_update['departure']['time']))
-        return None
+                    return Response({'seconds':long(stop_time_update['departure']['time'])})
+        return HttpResponseNotFound()
 
 class StopRealTimeAPIView(APIView):
     """
