@@ -11,7 +11,7 @@ import java.net.URL;
  * Created by andrey on 8/31/15.
  */
 public class BluetoothUtil {
-
+    private static final String TAG = "BluetoothUtil";
     public static String getBeaconURL(Beacon beacon){
         String url =UrlBeaconUrlCompressor.uncompress(beacon.getId1().toByteArray());
         return url.substring(0,url.length()-5);
@@ -23,6 +23,9 @@ public class BluetoothUtil {
     }
 
     public static int getStopIdFromBeacon(Beacon beacon){
-        return getStopIdFromURL(getBeaconURL(beacon));
+        Log.i(TAG, "Beacon detected with id1: "+beacon.getId1()+" id2:"+beacon.getId2()+" id3: "+beacon.getId3());
+        String id = beacon.getId1().toString();
+        int stop_id = Integer.parseInt(id.split("-")[2]);
+        return stop_id;
     }
 }

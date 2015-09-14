@@ -57,7 +57,7 @@ public class TransitTimesApplication  extends Application implements BootstrapNo
         beaconManager = BeaconManager.getInstanceForApplication(this);
         // Detect the Eddystone URL frame:
         beaconManager.getBeaconParsers().add(new BeaconParser().
-                setBeaconLayout("s:0-1=feaa,m:2-2=10,p:3-3:-41,i:4-20"));
+                setBeaconLayout("m:0-3=4c000215,i:4-19,i:20-21,i:22-23,p:24-24"));
 
         Log.d(TAG, "setting up background monitoring for beacons and power saving");
         // wake up the app when a beacon is seen

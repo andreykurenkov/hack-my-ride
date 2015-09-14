@@ -42,7 +42,7 @@ import thingswithworth.org.transittimes.ui.activity.MainActivity;
 public class BeaconMonitoringService extends Service implements BeaconConsumer {
     private String TAG = "BeaconMonitoringService";
     private int mLastSeenId;
-    private TransitTimesRESTServices mRESTService;
+    public static Stop lastSeenStop;
 
     @Override
     public void onDestroy() {
@@ -60,7 +60,6 @@ public class BeaconMonitoringService extends Service implements BeaconConsumer {
         super.onCreate();
         mLastSeenId = SharedPreferencesModel.lastSeenStopBeaconId;
         TransitTimesApplication.getBeaconManager().bind(this);
-        mRESTService = TransitTimesRESTServices.getInstance();
     }
 
     @Override
@@ -90,6 +89,7 @@ public class BeaconMonitoringService extends Service implements BeaconConsumer {
 
     private void respondToNewStop(Beacon beacon, int id) {
         Stop stop = TransitTimesRESTServices.getInstance().getDetailedStopTimes(id,3,true);
+        lastSeenStop = stop;
         TransitTimesApplication.getBus().post(new AtStopNotification(beacon,stop,stop.getStopTimes()));
         postNotification(stop, stop.getStopTimes(), 3);
     }
