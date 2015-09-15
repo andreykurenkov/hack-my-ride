@@ -9,7 +9,7 @@ from multigtfs.models import (
 from multigtfs.models.fields import Seconds
 from transitrestapi.serializers import *
 from django.http import Http404
-import abc 
+import datetime
 
 class AgencyListAPIView(generics.ListCreateAPIView):
     """
@@ -111,6 +111,15 @@ class StopDetailAPIView(generics.RetrieveAPIView):
     serializer_class = StopSerializer
     lookup_url_kwarg = 'stop_id'
 
+class ServiceDetailAPIView(generics.RetrieveAPIView):
+    """
+    Retrieve an stop time instance.
+    """
+    model = Service
+    queryset = Service.objects.all()
+    serializer_class = ServiceSerializer
+    lookup_url_kwarg = 'service_id'
+
 class StopNextTimesAPIView(generics.ListAPIView):
     """
     Retrieve next stop time relative to passed in time.
@@ -146,8 +155,12 @@ class StopNextTimesAPIView(generics.ListAPIView):
         stop = Stop.objects.get(id=stop_id)
         timecompare = Seconds(int(time))
         stoptimes = stop.stoptime_set.filter(arrival_time__gt=timecompare).order_by('arrival_time')
+        weekday = datetime.datetime.today().weekday()
+        weekdayname = ['monday','tuesday','wednesday','thursday','friday','saturday','sunday'][weekday]
+        stoptimes = [stoptime for stoptime in stoptimes if getattr(stoptime.trip.service,weekdayname)]
         if len(stoptimes)==0:
             stoptimes = stop.stoptime_set.order_by('arrival_time')
+            stoptimes = [stoptime for stoptime in stoptimes if getattr(stoptime.trip,weekdayname)]
         return stoptimes[0:min(len(stoptimes),num)]
 
 class StopTimesListAPIView(generics.ListAPIView):
