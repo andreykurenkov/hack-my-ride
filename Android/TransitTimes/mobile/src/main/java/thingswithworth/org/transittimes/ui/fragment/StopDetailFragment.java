@@ -102,7 +102,8 @@ public class StopDetailFragment extends Fragment implements OnMapReadyCallback
 
     private void refreshView()
     {
-        if(mCurrentStop!=null && mTitleView!=null) {
+        if(mCurrentStop!=null && mTitleView!=null)
+        {
             mTitleView.setText(mCurrentStop.getName().replace("(0)", "(outbound)").replace("(1)", "(inbound)"));
 
             GregorianCalendar cal = new GregorianCalendar();
@@ -118,31 +119,29 @@ public class StopDetailFragment extends Fragment implements OnMapReadyCallback
                             mDetailView.setText("Departure time is not available");
                             mContainer.setVisibility(View.GONE);
                         } else {
-                            for (int i = 0; i < stop_times.size(); i++) {
+                            for (int i = 0; i < 5; i++) {
                                 final int index = i;
                                 StopTime stopTime = stop_times.get(i);
-                                TransitTimesRESTServices.getInstance().tripService.getTrip(stopTime.getTrip()).subscribe((trip)-> {
-                                            stopTime.setTripData(trip);
-                                            String str = trip.getHeadsign() + " scheduled: " + stopTime.getDeparture_time().toString(false, false);
-                                            getActivity().runOnUiThread(() -> {
-                                                textViews[index].setText(str);
-                                                textViews[index].invalidate();
-                                            });
+                                Observable.zip(
+                                    TransitTimesRESTServices.getInstance().tripService.getTrip(stopTime.getTrip()),
+                                    TransitTimesRESTServices.getInstance().stopTimeService.getRealTimeStopTimesPrediction(stopTime.getId()),
+                                    (trip, real_time) -> {
+                                        if(stopTime.getDeparture_time()!=null)
+                                            return trip.getHeadsign() + " scheduled: "+stopTime.getDeparture_time().toString(false, false)+", predicted: "+real_time.getTimeOfDay();
+                                        else
+                                            return trip.getHeadsign() + " predicted: "+real_time.getTimeOfDay().toString(false,false);
+                                    })
+                                    .subscribe(
+                                            (str)-> getActivity().runOnUiThread(() -> {textViews[index].setText(str); textViews[index].invalidate();}),
+                                            (error)->{Log.e("StopDetailFragment", error.getMessage()); getActivity().runOnUiThread(() -> {textViews[index].setText("No real-time data is available"); textViews[index].invalidate();});}
 
-                                            TransitTimesRESTServices.getInstance().stopTimeService.getRealTimeStopTimesPrediction(stopTime.getId()).subscribe(real_time_stop -> {
-                                                    stopTime.setRealtime(real_time_stop.getTimeOfDay());
-                                                    getActivity().runOnUiThread(() -> {
-                                                        textViews[index].setText(str + ", predicted: " + stopTime.getRealtime().toString(false, false));
-                                                        textViews[index].invalidate();
-                                                    });
-                                            });
-                                 });
+                                 );
                             }
                         }});
-        if (mMap != null) {
-            updateMap();
+            if (mMap != null) {
+                updateMap();
+            }
         }
-    }
     }
 
     @Override
