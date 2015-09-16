@@ -160,7 +160,7 @@ class StopNextTimesAPIView(generics.ListAPIView):
         stoptimes = [stoptime for stoptime in stoptimes if getattr(stoptime.trip.service,weekdayname)]
         if len(stoptimes)==0:
             stoptimes = stop.stoptime_set.order_by('arrival_time')
-            stoptimes = [stoptime for stoptime in stoptimes if getattr(stoptime.trip,weekdayname)]
+            stoptimes = [stoptime for stoptime in stoptimes if getattr(stoptime.trip.service,weekdayname)]
         return stoptimes[0:min(len(stoptimes),num)]
 
 class StopTimesListAPIView(generics.ListAPIView):

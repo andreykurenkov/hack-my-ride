@@ -2,7 +2,7 @@ import gtfs_realtime_pb2
 import requests
 import protobuf_json
 from multigtfs.models import StopTime,Trip,Stop
-from django.http import Http404
+from rest_framework.exceptions import NotFound
 import traceback
 TOKEN = '10ee313e-23bb-4991-85f7-0bf6d6544bff'
 BASE_URL = 'http://api.511.org/transit'
@@ -15,7 +15,7 @@ def getRealTimeTripUpdates(agency_name):
         msg.ParseFromString(data)
         return protobuf_json.pb2json(msg)['entity']
     except:
-        raise Http404(traceback.format_exc())
+        raise NotFound(detail = 'Error '+traceback.format_exc())
 
 def getRealTimeTripUpdatesForTrip(trip_id):
     try:
@@ -27,7 +27,16 @@ def getRealTimeTripUpdatesForTrip(trip_id):
             return None
         return json_route[0]
     except:
-        raise Http404(traceback.format_exc())
+        raise NotFound(detail = 'Error '+traceback.format_exc())
+
+def getStopsWithRealTimeData(agency_name):
+    json = getRealTimeTripUpdates(agency_name)
+    stops = []
+    for json_trip in json:
+        for stop_time_update in json_trip['trip_update']['stop_time_update']:
+            stop = Stop.objects.filter(code=stop_time_update['stop_id'])[0]
+            stops.append((stop.id,stop_time_update['departure']['time']))
+    return stops
 
 def getRealTimeTripUpdatesFromStopTime(stop_time_id):
     try:
@@ -35,13 +44,15 @@ def getRealTimeTripUpdatesFromStopTime(stop_time_id):
         stop = stop_time.stop
         trip = stop_time.trip
         agency = trip.route.agency
-        json = getRealTimeForTrip(trip.pk)
+        json_trip = getRealTimeTripUpdatesForTrip(trip.pk)
+        if json_trip==None:
+            return json_trip
         for stop_time_update in json_trip['trip_update']['stop_time_update']:
             if stop_time_update['stop_id']==stop.code and 'departure' in stop_time_update:
                 return stop_time_update
         return None
     except:
-        raise Http404(traceback.format_exc())
+        raise NotFound(detail = 'Error '+traceback.format_exc())
 
 def getDepartureTimeForStopTime(stop_time_id):
     json = getRealTimeTripUpdatesFromStopTime(stop_time_id)

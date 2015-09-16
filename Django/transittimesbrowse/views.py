@@ -5,7 +5,7 @@ from multigtfs.models import (
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from multigtfs.models.fields import Seconds
-
+import datetime
 def index(request):
     agencies = Agency.objects.order_by('name')
     template = 'index.html'
@@ -40,7 +40,7 @@ def stops(request,agency_id,route_id):
     template = 'stops_page.html'
     agency = Agency.objects.get(agency_id=agency_id)
     route = Route.objects.get(route_id=route_id,agency__pk=agency.pk)
-    trip_ids = Trip.objects.filter(route__id = route_id).values_list("id")
+    trip_ids = Trip.objects.filter(route__id = route.pk).values_list("id")
     stop_ids =  StopTime.objects.filter(trip__id__in=trip_ids).values_list("stop__id")
     stops = Stop.objects.filter(id__in=stop_ids).distinct().order_by('name')
     if request.is_ajax():
@@ -62,6 +62,9 @@ def stop(request,agency_id,route_id,stop_id):
     if 'time' in request.GET:
         time = Seconds(int(request.GET['time']))
         stop_times = stop.stoptime_set.filter(arrival_time__gt=time).order_by('arrival_time')
+        weekday = datetime.datetime.today().weekday()
+        weekdayname = ['monday','tuesday','wednesday','thursday','friday','saturday','sunday'][weekday]
+        stop_times = [stoptime for stoptime in stop_times if getattr(stoptime.trip.service,weekdayname)]
         stop_times = stop_times[0:min(len(stop_times),num)]
     if request.is_ajax():
         template = 'stop_times_list.html'

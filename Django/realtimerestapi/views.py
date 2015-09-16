@@ -13,10 +13,17 @@ TOKEN = '10ee313e-23bb-4991-85f7-0bf6d6544bff'
 BASE_URL = 'http://api.511.org/transit'
 class TripsRealTimeUpdatesAPIView(APIView):
     """
-    Get realtime data about a stop
+    Get realtime data about trips
     """
     def get(self, request, agency_name, format=None):
         return Response(realtime.getRealTimeTripUpdates(agency_name))
+
+class StopsWithRealTimeDataAPIView(APIView):
+    """
+    Get realtime data about stops
+    """
+    def get(self, request, agency_name, format=None):
+        return Response(realtime.getStopsWithRealTimeData(agency_name))
 
 class TripRealTimeUpdatesAPIView(APIView):
     """
