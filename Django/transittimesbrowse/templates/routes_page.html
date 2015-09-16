@@ -9,13 +9,24 @@
 {% endblock %}
 
 {% block nav_home_active_class %} class="active"{% endblock %}
-{% block page_title %}Routes for {{agency.name}}{% endblock %}
+{% block page_title %}
+   {% if agency.url %}
+       Routes for <a href="{{ agency.url }}">{{agency.name}}</a>
+   {% else %}
+       Routes for {{agency.name}}
+   {% endif %}
+{% endblock %}
 {% block page_below_title %}
      {% if geom %}
          <div class="row" style="height:300px" id="mapdiv"></div>
      {% endif %}
 {% endblock %}
-{% block page_top_content %}Select the route of {{agency.name}} you would like to find info about.{% endblock %}
+      <a href="{% url 'stops' route_id=route.route_id agency_id=agency.agency_id%}" class="list-group-item">{{ route.long_name }}</a>
+
+{% block page_top_content %}
+       Select the route of this agency you would like to find info about.
+{% endblock %}
+
 {% block page_middle_content %}
 <div class="form-group">
     <textarea placeholder="You can search for a route name here" class="form-control" rows="1" id="text_search"></textarea>
