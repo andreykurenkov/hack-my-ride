@@ -105,10 +105,11 @@ public class TransitSystemFragment extends Fragment implements SearchView.OnQuer
                 .withAccountHeader(headerResult)
                 .withToolbar(toolbar)
                 .addDrawerItems(
-                        new PrimaryDrawerItem().withName("VTA").withIdentifier(1),
-                        new PrimaryDrawerItem().withName("MARTA").withIdentifier(2),
+                        new PrimaryDrawerItem().withName("VTA").withIdentifier(2),
+                        new PrimaryDrawerItem().withName("MARTA").withIdentifier(1),
                         new PrimaryDrawerItem().withName("BART").withIdentifier(3),
                         new PrimaryDrawerItem().withName("Caltrain").withIdentifier(4),
+                        new PrimaryDrawerItem().withName("RTD").withIdentifier(5),
                         new DividerDrawerItem(),
                         new SecondaryDrawerItem().withName("Settings").withIdentifier(999).withIcon(new IconDrawable(getActivity(), Iconify.IconValue.fa_gear))
 
