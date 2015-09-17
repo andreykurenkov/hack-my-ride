@@ -67,7 +67,7 @@ public class RouteAdapter extends RecyclerView.Adapter<RouteAdapter.ViewHolder> 
                 final String filterPattern = constraint.toString().toUpperCase().trim();
                 for(final Route route : originalList)
                 {
-                    if(route.getLong_name().contains(filterPattern))
+                    if(route.getLong_name().toUpperCase().contains(filterPattern))
                         filteredList.add(route);
                 }
             }

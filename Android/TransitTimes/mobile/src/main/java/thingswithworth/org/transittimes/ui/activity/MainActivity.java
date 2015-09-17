@@ -17,6 +17,8 @@ import com.google.android.gms.location.LocationServices;
 import com.mikepenz.materialdrawer.Drawer;
 import com.squareup.otto.Subscribe;
 
+import org.parceler.Parcels;
+
 import thingswithworth.org.transittimes.R;
 import thingswithworth.org.transittimes.TransitTimesApplication;
 import thingswithworth.org.transittimes.bluetooth.events.AtStopNotification;
