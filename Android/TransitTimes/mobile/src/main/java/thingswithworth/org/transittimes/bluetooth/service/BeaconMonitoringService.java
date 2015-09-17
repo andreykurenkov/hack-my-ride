@@ -1,5 +1,6 @@
 package thingswithworth.org.transittimes.bluetooth.service;
 
+import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -102,13 +103,14 @@ public class BeaconMonitoringService extends Service implements BeaconConsumer {
                 .setContentTitle("At "+stop.getName())
                 .setContentText("Expand for info about "+nextTimes.size()+" upcoming stops")
                 .setSmallIcon(R.mipmap.ic_launcher);
+
         NotificationCompat.InboxStyle inboxStyle =
                 new NotificationCompat.InboxStyle();
         // Sets a title for the Inbox in expanded layout
          // Moves events into the expanded layout
         inboxStyle.setSummaryText("Click to go to app view.");
         for(int i=0;i<num;i++) {
-            if(nextTimes.size()<num)
+            if(nextTimes.size()<num || nextTimes.get(i)==null)
                 break;
             StopTime stopTime = nextTimes.get(i);
             if(stopTime.getRealtime()!=null) {
@@ -127,8 +129,8 @@ public class BeaconMonitoringService extends Service implements BeaconConsumer {
         // Creates an explicit intent for an Activity in your app
         Intent resultIntent = new Intent(this, MainActivity.class);
         stop.setStopTimes(nextTimes);
-        Parcelable stopData = Parcels.wrap(stop);
-        resultIntent.putExtra("stop_data", stopData);
+        Parcelable stopData = Parcels.wrap(stop.getId());
+        resultIntent.putExtra("beacon_stop_id", stopData);
         // The stack builder object will contain an artificial back stack for the
         // started Activity.
         // This ensures that navigating backward from the Activity leads out of
@@ -144,6 +146,7 @@ public class BeaconMonitoringService extends Service implements BeaconConsumer {
                         PendingIntent.FLAG_UPDATE_CURRENT
                 );
         mBuilder.setContentIntent(resultPendingIntent);
+        mBuilder.setAutoCancel(true);
         // mId allows you to update the notification later on.
         NotificationManagerCompat.from(this).notify(0, mBuilder.build());
 

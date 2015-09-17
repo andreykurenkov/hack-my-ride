@@ -23,9 +23,9 @@ public class BluetoothUtil {
     }
 
     public static int getStopIdFromBeacon(Beacon beacon){
-        Log.i(TAG, "Beacon detected with id1: "+beacon.getId1()+" id2:"+beacon.getId2()+" id3: "+beacon.getId3());
-        String id = beacon.getId1().toString();
-        int stop_id = Integer.parseInt(id.split("-")[2]);
+        Log.i(TAG, "Beacon detected with id1: "+beacon.getId1()+" id2:"+beacon.getId2());
+        String id = beacon.getId1().toString().split("x")[1];
+        int stop_id = Integer.parseInt(id);
         return stop_id;
     }
 }

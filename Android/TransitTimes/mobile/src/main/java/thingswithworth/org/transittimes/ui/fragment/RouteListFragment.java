@@ -68,7 +68,7 @@ public class RouteListFragment extends Fragment
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
 
         if(mRouteList.size()==0) {
-            updateAgency(1);
+            updateAgency(2);//VTA - HACK TODO FIX
         }
 
 

@@ -91,7 +91,13 @@ public class PebbleCommService extends Service {
         int i=2;
         for(StopTime time:atStopNotification.getTimes()){
             data.addString((i++), time.getTripData().getHeadsign());
-            String str = time.getArrival_time().toString(false,false);
+            String str = "";
+            if(time.getArrival_time()!=null)
+                str+= time.getArrival_time().toString(false,false);
+            else if(time.getRealtime()!=null)
+                str+="Predicted: "+time.getRealtime().toString(false,false);
+            else
+                str="No known stop time.";
             if(time.getRealtime()!=null)
                 str+=", predicted: "+time.getRealtime().toString(false,false);
             data.addString((i++), str);

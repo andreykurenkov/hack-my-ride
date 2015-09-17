@@ -25,6 +25,7 @@ import java.util.List;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
+import retrofit.RetrofitError;
 import rx.Observable;
 import thingswithworth.org.transittimes.R;
 import thingswithworth.org.transittimes.model.SecondsPosixTime;
@@ -33,6 +34,7 @@ import thingswithworth.org.transittimes.model.Stop;
 import thingswithworth.org.transittimes.model.StopTime;
 import thingswithworth.org.transittimes.model.Trip;
 import thingswithworth.org.transittimes.net.events.OpenRouteRequest;
+import thingswithworth.org.transittimes.net.service.RestUtil;
 import thingswithworth.org.transittimes.net.service.TransitTimesRESTServices;
 
 /**
@@ -106,15 +108,25 @@ public class StopDetailFragment extends Fragment implements OnMapReadyCallback
         {
             mTitleView.setText(mCurrentStop.getName().replace("(0)", "(outbound)").replace("(1)", "(inbound)"));
 
-            GregorianCalendar cal = new GregorianCalendar();
-            int currentSecond = cal.get(Calendar.SECOND);
-            int currentMinute = cal.get(Calendar.MINUTE);
-            int currentHour = cal.get(Calendar.HOUR_OF_DAY);
-            int currentTotalSeconds = currentSecond + currentMinute * 60 + currentHour * 3600;
+            int currentTotalSeconds = RestUtil.getSecondsOfDay();
+            int day = RestUtil.getDayOfWeek();
             final TextView[] textViews = {firstStopTimeView, secondStopTimeView, thirdStopTimeView, fourthStopTimeView, fifthStopTimeView};
-
-            TransitTimesRESTServices.getInstance().stopService.getNextStopTimesAtStop(mCurrentStop.getId(), currentTotalSeconds, 6).subscribe(
+            if(mCurrentStop.getStopTimes()!=null && !textViews[0].getText().toString().contains("scheduled")) {
+                for (int i = 0; i < Math.min(mCurrentStop.getStopTimes().size(),3); i++) {
+                    StopTime stopTime = mCurrentStop.getStopTimes().get(i);
+                    if(stopTime.getTripData()!=null){
+                        final int index = i;
+                        String str = stopTime.getTripData().getHeadsign() + " scheduled: " + stopTime.getDeparture_time().toString(false, false);
+                        getActivity().runOnUiThread(() -> {
+                            textViews[index].setText(str);
+                            textViews[index].invalidate();
+                        });
+                    }
+                }
+            }
+            TransitTimesRESTServices.getInstance().stopService.getNextStopTimesAtStop(mCurrentStop.getId(), currentTotalSeconds, 6,day).subscribe(
                     (stop_times) -> {
+                        mCurrentStop.setStopTimes(stop_times);
                         if (stop_times.size() == 0) {
                             mDetailView.setText("Departure time is not available");
                             mContainer.setVisibility(View.GONE);
@@ -122,22 +134,30 @@ public class StopDetailFragment extends Fragment implements OnMapReadyCallback
                             for (int i = 0; i < 5; i++) {
                                 final int index = i;
                                 StopTime stopTime = stop_times.get(i);
-                                Observable.zip(
-                                    TransitTimesRESTServices.getInstance().tripService.getTrip(stopTime.getTrip()),
-                                    TransitTimesRESTServices.getInstance().stopTimeService.getRealTimeStopTimesPrediction(stopTime.getId()),
-                                    (trip, real_time) -> {
-                                        if(stopTime.getDeparture_time()!=null)
-                                            return trip.getHeadsign() + " scheduled: "+stopTime.getDeparture_time().toString(false, false)+", predicted: "+real_time.getTimeOfDay();
-                                        else
-                                            return trip.getHeadsign() + " predicted: "+real_time.getTimeOfDay().toString(false,false);
-                                    })
-                                    .subscribe(
-                                            (str)-> getActivity().runOnUiThread(() -> {textViews[index].setText(str); textViews[index].invalidate();}),
-                                            (error)->{Log.e("StopDetailFragment", error.getMessage()); getActivity().runOnUiThread(() -> {textViews[index].setText("No real-time data is available"); textViews[index].invalidate();});}
+                                TransitTimesRESTServices.getInstance().tripService.getTrip(stopTime.getTrip()).subscribe((trip)-> {
+                                               stopTime.setTripData(trip);
+                                                String str = trip.getHeadsign() + " scheduled: " + stopTime.getDeparture_time().toString(false, false);
+                                                getActivity().runOnUiThread(() -> {
+                                                       textViews[index].setText(str);
+                                                        textViews[index].invalidate();
+                                                    });
 
-                                 );
+                                    try {
+
+                                        TransitTimesRESTServices.getInstance().stopTimeService.getRealTimeStopTimesPrediction(stopTime.getId()).subscribe(real_time_stop -> {
+                                            stopTime.setRealtime(real_time_stop.getTimeOfDay());
+                                            getActivity().runOnUiThread(() -> {
+                                                textViews[index].setText(str + ", predicted: " + stopTime.getRealtime().toString(false, false));
+                                                textViews[index].invalidate();
+                                            });
+                                        });
+                                    }catch(RetrofitError e){
+                                        Log.e("StopDetailFragment","Can't get real time",e);
+                                    }
+                                    });
                             }
-                        }});
+                        }
+                    });
             if (mMap != null) {
                 updateMap();
             }

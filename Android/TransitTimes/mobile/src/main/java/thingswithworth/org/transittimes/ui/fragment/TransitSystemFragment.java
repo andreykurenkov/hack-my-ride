@@ -35,7 +35,6 @@ import thingswithworth.org.transittimes.TransitTimesApplication;
 import thingswithworth.org.transittimes.model.Stop;
 import thingswithworth.org.transittimes.net.events.FilterMessage;
 import thingswithworth.org.transittimes.net.events.OpenPreferencesRequest;
-import thingswithworth.org.transittimes.ui.menu.AppDrawer;
 
 /**
  * Created by Alex on 8/23/2015.
@@ -101,7 +100,7 @@ public class TransitSystemFragment extends Fragment implements SearchView.OnQuer
                 .withHeaderBackground(R.drawable.header)
                 .build();
 
-        drawer = new AppDrawer().withActivity(getActivity())
+        drawer = new Drawer().withActivity(getActivity())
                 .withAccountHeader(headerResult)
                 .withToolbar(toolbar)
                 .addDrawerItems(
@@ -136,7 +135,6 @@ public class TransitSystemFragment extends Fragment implements SearchView.OnQuer
                         }
                 )
                 .build();
-
     }
 
     public void updateBeaconStop(Stop s)

@@ -15,6 +15,6 @@ public interface StopTimeService {
     @GET("/api/stop_time/{stop_time_id}")
     public Observable<StopTime> getStopTime(@Path("stop_time_id") int stop_time_id);
 
-    @GET("/api/stop_time/realtime/{stop_time_id}")
+    @GET("/api/realtime/stop_time_departure/{stop_time_id}")
     public Observable<SecondsPosixTime> getRealTimeStopTimesPrediction(@Path("stop_time_id") int stop_time_id);
 }

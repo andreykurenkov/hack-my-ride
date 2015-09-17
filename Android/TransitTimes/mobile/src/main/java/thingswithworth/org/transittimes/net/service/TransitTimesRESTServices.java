@@ -23,6 +23,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import retrofit.RestAdapter;
+import retrofit.RetrofitError;
 import retrofit.client.OkClient;
 import retrofit.converter.GsonConverter;
 import rx.Observable;
@@ -160,12 +161,10 @@ public class TransitTimesRESTServices
     public Stop getDetailedStopTimes(int stop_id,int num, boolean getRealTime){
         Log.i(TAG,"Getting detailed info for stop "+stop_id);
         GregorianCalendar cal = new GregorianCalendar();
-        int currentSecond = cal.get(Calendar.SECOND);
-        int currentMinute = cal.get(Calendar.MINUTE);
-        int currentHour = cal.get(Calendar.HOUR_OF_DAY);
-        int currentTotalSeconds = currentSecond + currentMinute*60 + currentHour*3600;
+        int currentTotalSeconds = RestUtil.getSecondsOfDay();
+        int day = RestUtil.getDayOfWeek();
         Observable<Stop> stopO = stopService.getStop(stop_id);
-        Observable<List<StopTime>>  stopTimesO =  stopService.getNextStopTimesAtStop(stop_id, currentTotalSeconds, num);
+        Observable<List<StopTime>>  stopTimesO =  stopService.getNextStopTimesAtStop(stop_id, currentTotalSeconds, num,day);
         Log.d(TAG,String.format("Looking for %d times after %d seconds",num,currentTotalSeconds));
         Stop stop = stopO.toBlocking().single();//Because YOLO
         List<StopTime> stop_times = stopTimesO.toBlocking().single();//Because YOLO
@@ -174,11 +173,14 @@ public class TransitTimesRESTServices
             stop_time.setStopData(stop);
             //this is not efficient and I DONT EVEN CARE
             stop_time.setTripData(tripO.toBlocking().single());
+            try {
+                if (getRealTime) {
+                    Observable<SecondsPosixTime> secondsO = stopTimeService.getRealTimeStopTimesPrediction(stop_time.getId());
+                    SecondsTime seconds = secondsO.toBlocking().single().getTimeOfDay();
+                    stop_time.setRealtime(seconds);
+                }
+            }catch(RetrofitError error){
 
-            if(getRealTime) {
-                Observable<SecondsPosixTime> secondsO = stopTimeService.getRealTimeStopTimesPrediction(stop_time.getId());
-                SecondsTime seconds = secondsO.toBlocking().single().getTimeOfDay();
-                stop_time.setRealtime(seconds);
             }
         }
         stop.setStopTimes(stop_times);

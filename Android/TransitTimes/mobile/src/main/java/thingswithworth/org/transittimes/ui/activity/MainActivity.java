@@ -1,57 +1,33 @@
 package thingswithworth.org.transittimes.ui.activity;
 
-import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.location.Location;
-
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.SearchView;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.inputmethod.InputMethodManager;
 
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.location.LocationListener;
-import com.joanzapata.android.iconify.IconDrawable;
-import com.joanzapata.android.iconify.Iconify;
 import com.mikepenz.materialdrawer.Drawer;
-import com.mikepenz.materialdrawer.accountswitcher.AccountHeader;
-import com.mikepenz.materialdrawer.model.DividerDrawerItem;
-import com.mikepenz.materialdrawer.model.PrimaryDrawerItem;
-import com.mikepenz.materialdrawer.model.SecondaryDrawerItem;
 import com.squareup.otto.Subscribe;
 
-import org.altbeacon.beacon.BeaconManager;
-import org.parceler.Parcels;
-
-import butterknife.Bind;
-import butterknife.ButterKnife;
 import thingswithworth.org.transittimes.R;
 import thingswithworth.org.transittimes.TransitTimesApplication;
-import thingswithworth.org.transittimes.bluetooth.BluetoothUtil;
 import thingswithworth.org.transittimes.bluetooth.events.AtStopNotification;
-import thingswithworth.org.transittimes.bluetooth.events.NewBeaconSeen;
 import thingswithworth.org.transittimes.bluetooth.service.BeaconMonitoringService;
-import thingswithworth.org.transittimes.model.Stop;
-import thingswithworth.org.transittimes.net.events.FilterMessage;
 import thingswithworth.org.transittimes.net.events.LocationUpdateMessage;
 import thingswithworth.org.transittimes.net.events.OpenPreferencesRequest;
 import thingswithworth.org.transittimes.net.events.OpenRouteRequest;
 import thingswithworth.org.transittimes.net.events.OpenStopRequest;
-import thingswithworth.org.transittimes.net.service.TransitTimesRESTServices;
 import thingswithworth.org.transittimes.ui.fragment.RouteDetailFragment;
 import thingswithworth.org.transittimes.ui.fragment.StopDetailFragment;
 import thingswithworth.org.transittimes.ui.fragment.TransitPreferenceFragment;
 import thingswithworth.org.transittimes.ui.fragment.TransitSystemFragment;
-import thingswithworth.org.transittimes.ui.menu.AppDrawer;
-
 
 public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, LocationListener {
     private static String TAG = "MainActivity";
@@ -87,14 +63,12 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 .build();
         mGoogleApiClient.connect();
 
-        if(BeaconMonitoringService.lastSeenStop!=null)
-            systemFragment.updateBeaconStop(BeaconMonitoringService.lastSeenStop);
 
-        if(getIntent().hasExtra("stop_data"))
+        if(getIntent().hasExtra("beacon_stop_id"))
         {
-            Parcelable stopData = getIntent().getParcelableExtra("stop_data");
-            Stop stop = Parcels.unwrap(stopData);
-            stopDetailFragment.updateStopAndRefresh(stop);
+            Parcelable stopData = getIntent().getParcelableExtra("beacon_stop_id");
+            if(BeaconMonitoringService.lastSeenStop!=null)
+                stopDetailFragment.updateStopAndRefresh(BeaconMonitoringService.lastSeenStop);
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.container, stopDetailFragment)
                     .addToBackStack("")
