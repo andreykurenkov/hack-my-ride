@@ -1,5 +1,6 @@
 package thingswithworth.org.transittimes.ui.activity;
 
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.location.Location;
 import android.os.Bundle;
@@ -63,18 +64,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 .build();
         mGoogleApiClient.connect();
 
-
-        if(getIntent().hasExtra("beacon_stop_id"))
-        {
-            Parcelable stopData = getIntent().getParcelableExtra("beacon_stop_id");
-            if(BeaconMonitoringService.lastSeenStop!=null)
-                stopDetailFragment.updateStopAndRefresh(BeaconMonitoringService.lastSeenStop);
-            getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.container, stopDetailFragment)
-                    .addToBackStack("")
-                    .commit();
-        }
-
     }
 
     @Override
@@ -101,7 +90,16 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         {
             LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
         }
-
+        if(getIntent().hasExtra("beacon_stop_id"))
+        {
+            Parcelable stopData = getIntent().getParcelableExtra("beacon_stop_id");
+            if(BeaconMonitoringService.lastSeenStop!=null)
+                stopDetailFragment.updateStopAndRefresh(BeaconMonitoringService.lastSeenStop);
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.container, stopDetailFragment)
+                    .addToBackStack("")
+                    .commit();
+        }
     }
 
     @Override

@@ -116,7 +116,7 @@ public class StopDetailFragment extends Fragment implements OnMapReadyCallback
                     StopTime stopTime = mCurrentStop.getStopTimes().get(i);
                     if(stopTime.getTripData()!=null){
                         final int index = i;
-                        String str = stopTime.getTripData().getHeadsign() + " scheduled: " + stopTime.getDeparture_time().toString(false, false);
+                        String str = stopTime.getTripData().getHeadsign() + " scheduled: " + (stopTime.getDeparture_time() !=null ? stopTime.getDeparture_time().toString(false, false): "Not available");
                         getActivity().runOnUiThread(() -> {
                             textViews[index].setText(str);
                             textViews[index].invalidate();
@@ -136,7 +136,7 @@ public class StopDetailFragment extends Fragment implements OnMapReadyCallback
                                 StopTime stopTime = stop_times.get(i);
                                 TransitTimesRESTServices.getInstance().tripService.getTrip(stopTime.getTrip()).subscribe((trip)-> {
                                                stopTime.setTripData(trip);
-                                                String str = trip.getHeadsign() + " scheduled: " + stopTime.getDeparture_time().toString(false, false);
+                                                String str = trip.getHeadsign() + " scheduled: " + (stopTime.getDeparture_time() !=null ? stopTime.getDeparture_time().toString(false, false): "Not available");
                                                 getActivity().runOnUiThread(() -> {
                                                        textViews[index].setText(str);
                                                         textViews[index].invalidate();
